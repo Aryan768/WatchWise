@@ -33,15 +33,11 @@ app.get('/album-duration', async (req, res) => {
       // console.log(videoIds)
 
       
-      // Now, let's fetch the duration for each video
+      //  fetch the duration for each video
       const videoDetailsUrl = `https://www.googleapis.com/youtube/v3/videos?part=contentDetails&id=${videoIds.join(',')}&key=${API_KEY}`;
-      // console.log("videoDetailsUrl:")
-      // console.log(videoDetailsUrl);
+ 
       const videoDetailsResponse = await axios.get(videoDetailsUrl);
-      // console.log("videoDetailsResponse:")
-      // console.log(videoDetailsResponse );
-   
-      // Calculate total duration
+ 
       let totalDurationInSeconds = 0;
   
       videoDetailsResponse.data.items.forEach(video => {
@@ -120,34 +116,17 @@ app.get('/album-duration', async (req, res) => {
     })
   })
   
-//Google part for AI
-// import { GoogleGenerativeAI } from "@google/generative-ai";
 
-// app.get('/ai',async(req,res)=>{
-//   const genAI = new GoogleGenerativeAI(process.env.API_KEY);
-// const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-// console.log(comments)
-// const prompt = `Summarize the following YouTube comments:'${comments}'
-// Also, provide a brief overview of the main topics discussed in the comments.`;
-
-//   const result = await model.generateContent(prompt);
-//   console.log(result.response.text());
-//   res.send(result.response.text())
-
-// })
-
-// Server listens on port 3000
 app.get('/atspeed',async(req,res)=>{
-  const playlistId = req.query.playlistId; // The playlist ID will be passed via URL
+  const videoId = req.query.videoId; // The playlist ID will be passed via URL
   const API_KEY = process.env.YOUTUBE_API_KEY;
-  const url = `https://www.googleapis.com/youtube/v3/videos?part=contentDetails&playlistId=${playlistId}&key=${API_KEY}`;
+  const url = `https://www.googleapis.com/youtube/v3/videos?part=contentDetails&id=${videoId}&key=${API_KEY}`;
   const vidDetail = await axios.get(url);
- // console.log(vidDetail)
+
   const totalTime= vidDetail.data.items[0].contentDetails.duration
   console.log(totalTime);
-  
-  // videoDetailsResponse.data.items.forEach(video => {
-  //   const duration = video.contentDetails.duration;
+  res.send(totalTime); 
+ 
 })
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
