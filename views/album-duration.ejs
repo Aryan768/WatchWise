@@ -8,6 +8,10 @@
 </head>
 <body>
   <div class="container mt-5">
+    <h1>Total Duration of the playlist :</h1>
+    <p><%=totalDuration %></p>
+    <h1>Average Duration :</h1>
+    <p><%=averageDuration %></p>
     <h1 class="text-center">Video Duration at Different Playback Speeds</h1>
 
     <table class="table table-bordered table-striped mt-4">
@@ -27,18 +31,9 @@
       </tbody>
     </table>
 
-    <h1>AI Summary</h1>
-    <p><%= finalResult %></p>
-
-    <h2>Image:<%=imgUrl%> </h2>
-    <img src="<%=imgUrl%>" alt="Video Thumbnail">
-<h3>Description: <%=description %></h3>
-
     <div class="text-center mt-4">
       <a href="/" class="btn btn-primary">Go Back</a>
     </div>
   </div>
-
- <!-- <script src="https://cdn.jsdelivr.net/npm/lazysizes@5.3.2/lazyload.min.js"></script>  -->
 </body>
 </html>

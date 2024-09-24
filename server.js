@@ -132,13 +132,12 @@
 //   console.log(`Server is running on port ${PORT}`)
 // })
 
-const express = require('express');
+import express from 'express';
+import axios from 'axios';
+import dotenv from 'dotenv';
+import bodyParser from 'body-parser';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 const app = express();
-const axios = require('axios');
-const dotenv = require('dotenv');
-const bodyParser = require('body-parser');
-const { GoogleGenerativeAI } = require('@google/generative-ai');
-
 // Load environment variables from .env file
 dotenv.config();
 
@@ -147,6 +146,8 @@ app.set('view engine', 'ejs');
 
 // Parse incoming request data
 app.use(bodyParser.urlencoded({ extended: true }));
+//Global var
+var gl1;
 
 // Home route (for testing)
 app.get('/', (req, res) => {
@@ -156,7 +157,9 @@ app.get('/', (req, res) => {
 // Helper function: Fetch video details by ID
 async function fetchVideoDetails(videoId, API_KEY) {
   const videoDetailsUrl = `https://www.googleapis.com/youtube/v3/videos?part=contentDetails&id=${videoId}&key=${API_KEY}`;
+  
   const response = await axios.get(videoDetailsUrl);
+  //console.log(videoDetailsUrl)
   return response.data.items[0].contentDetails.duration;
 }
 
@@ -176,7 +179,7 @@ function calculateSpeedDurations(durationInSeconds) {
   
   speeds.forEach(speed => {
     const newDuration = (durationInSeconds / speed).toFixed(2); // Keep 2 decimal places
-    durations[`atSpeed${speed}x`] = formatDuration(newDuration);
+    durations[`atSpeed ${speed}x`] = formatDuration(newDuration);  //Computed Property Names in js similar but not same as unordered map in c++
   });
 
   return durations;
@@ -198,19 +201,24 @@ app.get('/album-duration', async (req, res) => {
 
   try {
     const response = await axios.get(url);
+    console.dir(response); // Provides detailed view
     const videoIds = response.data.items.map(item => item.contentDetails.videoId);
-
+    const noOfVideosInPlayList =videoIds.length
+    console.log(noOfVideosInPlayList)
     // Fetch video durations
+
     let totalDurationInSeconds = 0;
     for (const videoId of videoIds) {
       const videoDuration = await fetchVideoDetails(videoId, API_KEY);
       totalDurationInSeconds += parseISO8601Duration(videoDuration);
     }
 
+
+
     const totalDuration = formatDuration(totalDurationInSeconds);
     const speedDurations = calculateSpeedDurations(totalDurationInSeconds);
-
-    res.render('album-duration', { totalDuration, speedDurations });
+    const averageDuration = formatDuration(totalDurationInSeconds/noOfVideosInPlayList);
+    res.render('album-duration', { totalDuration, speedDurations ,averageDuration});
   } catch (error) {
     console.error(error);
     res.status(500).send('Error fetching album duration');
@@ -229,7 +237,7 @@ app.get('/comments', async (req, res) => {
     // Remove HTML tags from comments
     const comments = response.data.items.map(item => {
       const rawComment = item.snippet.topLevelComment.snippet.textDisplay;
-      return rawComment.replace(/<\/?[^>]+(>|$)/g, ''); // Strip HTML tags
+      return rawComment.replace(/<\/?[^>]+(>|$)|[*]/g, '');
     });
 
     // Summarize comments using Google Generative AI
@@ -238,12 +246,52 @@ app.get('/comments', async (req, res) => {
     
     const prompt = `Summarize the following YouTube comments:\n${comments.join('\n')}`;
     const result = await model.generateContent(prompt);
-    
-    res.send(result.response.text());
+    var finalResult = result.response.text();
+    try {
+      const videoDuration = await fetchVideoDetails(videoId, API_KEY);
+      const totalDurationInSeconds = parseISO8601Duration(videoDuration);
+      var totalDurationv1 = formatDuration(totalDurationInSeconds)
+      var speedDurations = calculateSpeedDurations(totalDurationInSeconds);
+  
+    }
+    catch (error) {
+      console.error(error);
+      res.status(500).send('Error fetching video duration');
+    }
+   // res.send(result.response.text());
   } catch (error) {
     console.error(error);
     res.status(500).send('Error fetching comments');
+  }  
+//at speed part
+  try {
+    const videoDuration = await fetchVideoDetails(videoId, API_KEY);
+    const totalDurationInSeconds = parseISO8601Duration(videoDuration);
+    var speedDurations = calculateSpeedDurations(totalDurationInSeconds);
+
+    //res.render('speed-durations', { speedDurations });
+  } catch (error) {
+    console.error(error);
+    res.status(500).send('Error fetching video duration');
   }
+  //likes part
+  const videoDetailsUrl = `https://www.googleapis.com/youtube/v3/videos?part=statistics&id=${videoId}&key=${API_KEY}`
+  const videoDetailsResponse = await axios.get(videoDetailsUrl)
+  const videoStats = videoDetailsResponse.data.items[0].statistics
+  const { viewCount, likeCount, dislikeCount, commentCount } = videoStats
+  
+  const newLink = `https://www.googleapis.com/youtube/v3/videos?key=${API_KEY}&part=snippet&id=${videoId}`
+  const newLinkResponse = await axios.get(newLink)
+  console.log(newLink)
+  const imgUrl = newLinkResponse.data.items[0].snippet.thumbnails.maxres.url
+  console.log(imgUrl)
+  const description = newLinkResponse.data.items[0].snippet.title;
+  console.log(description);
+  res.render('comments', { speedDurations,finalResult ,totalDurationv1, viewCount,
+    likeCount,
+    dislikeCount: dislikeCount || 'Unavailable', commentCount ,imgUrl,description
+  }
+  )
 });
 
 // Route: Get video duration at different playback speeds
@@ -260,7 +308,10 @@ app.get('/atspeed', async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).send('Error fetching video duration');
+  
   }
+
+  
 });
 app.get('/likes', async (req, res) => {
   const videoId = req.query.videoId
@@ -270,9 +321,9 @@ app.get('/likes', async (req, res) => {
   const videoStats = videoDetailsResponse.data.items[0].statistics
   const { viewCount, likeCount, dislikeCount, commentCount } = videoStats
 
+  gl1 =viewCount;
   // Render the data
   res.render('video-analysis1', {
-    comments,
     viewCount,
     likeCount,
     dislikeCount: dislikeCount || 'Unavailable',
@@ -284,6 +335,7 @@ app.get('/likes', async (req, res) => {
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
+  
 });
 
 
