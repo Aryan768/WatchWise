@@ -18,7 +18,7 @@ const App = () => {
     
     let apiUrl = '';
     if (isPlaylist) {
-      apiUrl = `/album-duration?playlistId=${extractId(input)}`;
+      apiUrl = `/comments?playlistId=${extractId(input)}`;
     } else if (isVideo) {
       apiUrl = `/atspeed?videoId=${extractId(input)}`;
     } else {

@@ -48,7 +48,7 @@
 //       const seconds = parseISO8601Duration(duration)
 //       totalDurationInSeconds += seconds
 //     })
-    
+
 //     const hours = Math.floor(totalDurationInSeconds / 3600)
 //     const minutes = Math.floor((totalDurationInSeconds % 3600) / 60)
 //     const seconds = totalDurationInSeconds % 60
@@ -132,211 +132,183 @@
 //   console.log(`Server is running on port ${PORT}`)
 // })
 
-import express from 'express';
-import axios from 'axios';
-import dotenv from 'dotenv';
-import bodyParser from 'body-parser';
-import { GoogleGenerativeAI } from '@google/generative-ai';
-const app = express();
+import express from 'express'
+import axios from 'axios'
+import dotenv from 'dotenv'
+import bodyParser from 'body-parser'
+import { GoogleGenerativeAI } from '@google/generative-ai'
+const app = express()
 // Load environment variables from .env file
-dotenv.config();
+dotenv.config()
 
 // Set the view engine to EJS
-app.set('view engine', 'ejs');
+app.set('view engine', 'ejs')
 
 // Parse incoming request data
-app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.urlencoded({ extended: true }))
 //Global var
-var gl1;
+var gl1
 
 // Home route (for testing)
 app.get('/', (req, res) => {
-  res.send('Welcome to the YouTube Analyzer!');
-});
+  res.send('Welcome to the YouTube Analyzer!')
+})
 
 // Helper function: Fetch video details by ID
-async function fetchVideoDetails(videoId, API_KEY) {
-  const videoDetailsUrl = `https://www.googleapis.com/youtube/v3/videos?part=contentDetails&id=${videoId}&key=${API_KEY}`;
-  
-  const response = await axios.get(videoDetailsUrl);
+async function fetchVideoDetails (videoId, API_KEY) {
+  const videoDetailsUrl = `https://www.googleapis.com/youtube/v3/videos?part=contentDetails&id=${videoId}&key=${API_KEY}`
+
+  const response = await axios.get(videoDetailsUrl)
   //console.log(videoDetailsUrl)
-  return response.data.items[0].contentDetails.duration;
+  return response.data.items[0].contentDetails.duration
 }
 
 // Helper function: Parse ISO 8601 duration format (like PT1H2M30S)
-function parseISO8601Duration(duration) {
-  const match = duration.match(/PT(\d+H)?(\d+M)?(\d+S)?/);
-  const hours = parseInt(match[1]) || 0;
-  const minutes = parseInt(match[2]) || 0;
-  const seconds = parseInt(match[3]) || 0;
-  return hours * 3600 + minutes * 60 + seconds;
+function parseISO8601Duration (duration) {
+  const match = duration.match(/PT(\d+H)?(\d+M)?(\d+S)?/)
+  const hours = parseInt(match[1]) || 0
+  const minutes = parseInt(match[2]) || 0
+  const seconds = parseInt(match[3]) || 0
+  return hours * 3600 + minutes * 60 + seconds
 }
 
 // Helper function: Calculate video duration at different speeds
-function calculateSpeedDurations(durationInSeconds) {
-  const speeds = [1.25, 1.5, 1.75, 2.0];
-  const durations = {};
-  
-  speeds.forEach(speed => {
-    const newDuration = (durationInSeconds / speed).toFixed(2); // Keep 2 decimal places
-    durations[`atSpeed ${speed}x`] = formatDuration(newDuration);  //Computed Property Names in js similar but not same as unordered map in c++
-  });
+function calculateSpeedDurations (durationInSeconds) {
+  const speeds = [1.25, 1.5, 1.75, 2.0]
+  const durations = {}
 
-  return durations;
+  speeds.forEach(speed => {
+    const newDuration = (durationInSeconds / speed).toFixed(2) // Keep 2 decimal places
+    durations[`atSpeed ${speed}x`] = formatDuration(newDuration) //Computed Property Names in js similar but not same as unordered map in c++
+  })
+
+  return durations
 }
 
 // Helper function: Format duration into hours, minutes, seconds
-function formatDuration(totalSeconds) {
-  const hours = Math.floor(totalSeconds / 3600);
-  const minutes = Math.floor((totalSeconds % 3600) / 60);
-  const seconds = (totalSeconds % 60).toFixed(0);
-  return `${hours}h ${minutes}m ${seconds}s`;
+function formatDuration (totalSeconds) {
+  const hours = Math.floor(totalSeconds / 3600)
+  const minutes = Math.floor((totalSeconds % 3600) / 60)
+  const seconds = (totalSeconds % 60).toFixed(0)
+  return `${hours}h ${minutes}m ${seconds}s`
 }
 
 // Route: Calculate Album Duration
 app.get('/album-duration', async (req, res) => {
-  const playlistId = req.query.playlistId;
-  const API_KEY = process.env.YOUTUBE_API_KEY;
-  const url = `https://www.googleapis.com/youtube/v3/playlistItems?part=contentDetails&maxResults=50&playlistId=${playlistId}&key=${API_KEY}`;
-
+  const playlistId = req.query.playlistId
+  const API_KEY = process.env.YOUTUBE_API_KEY
+  const url = `https://www.googleapis.com/youtube/v3/playlistItems?part=contentDetails&maxResults=50&playlistId=${playlistId}&key=${API_KEY}`
+ 
   try {
-    const response = await axios.get(url);
-    console.dir(response); // Provides detailed view
-    const videoIds = response.data.items.map(item => item.contentDetails.videoId);
-    const noOfVideosInPlayList =videoIds.length
+    const response = await axios.get(url)
+    console.dir(response) // Provides detailed view
+    const videoIds = response.data.items.map(
+      item => item.contentDetails.videoId
+    )
+    const noOfVideosInPlayList = videoIds.length
     console.log(noOfVideosInPlayList)
     // Fetch video durations
 
-    let totalDurationInSeconds = 0;
+    let totalDurationInSeconds = 0
     for (const videoId of videoIds) {
-      const videoDuration = await fetchVideoDetails(videoId, API_KEY);
-      totalDurationInSeconds += parseISO8601Duration(videoDuration);
+      const videoDuration = await fetchVideoDetails(videoId, API_KEY)
+      totalDurationInSeconds += parseISO8601Duration(videoDuration)
     }
 
-
-
-    const totalDuration = formatDuration(totalDurationInSeconds);
-    const speedDurations = calculateSpeedDurations(totalDurationInSeconds);
-    const averageDuration = formatDuration(totalDurationInSeconds/noOfVideosInPlayList);
-    res.render('album-duration', { totalDuration, speedDurations ,averageDuration});
+    const totalDuration = formatDuration(totalDurationInSeconds)
+    const speedDurations = calculateSpeedDurations(totalDurationInSeconds)
+    const averageDuration = formatDuration(
+      totalDurationInSeconds / noOfVideosInPlayList
+    )
+    res.render('album-duration', {
+      totalDuration,
+      speedDurations,
+      averageDuration
+    })
   } catch (error) {
-    console.error(error);
-    res.status(500).send('Error fetching album duration');
+    console.error(error)
+    res.status(500).send('Error fetching album duration')
   }
-});
+})
 
 // Route: Fetch YouTube Comments and Summarize
 app.get('/comments', async (req, res) => {
-  const videoId = req.query.videoId;
-  const API_KEY = process.env.YOUTUBE_API_KEY;
-  const url = `https://www.googleapis.com/youtube/v3/commentThreads?part=snippet&videoId=${videoId}&key=${API_KEY}`;
+  const videoId = req.query.videoId
+  const API_KEY = process.env.YOUTUBE_API_KEY
+  const url = `https://www.googleapis.com/youtube/v3/commentThreads?part=snippet&videoId=${videoId}&key=${API_KEY}`
 
   try {
-    const response = await axios.get(url);
+    const response = await axios.get(url)
 
     // Remove HTML tags from comments
     const comments = response.data.items.map(item => {
-      const rawComment = item.snippet.topLevelComment.snippet.textDisplay;
-      return rawComment.replace(/<\/?[^>]+(>|$)|[*]/g, '');
-    });
+      const rawComment = item.snippet.topLevelComment.snippet.textDisplay
+      return rawComment.replace(/<\/?[^>]+(>|$)|[*]/g, '')
+    })
 
     // Summarize comments using Google Generative AI
-    const genAI = new GoogleGenerativeAI(process.env.API_KEY);
-    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
-    
-    const prompt = `Summarize the following YouTube comments:\n${comments.join('\n')}`;
-    const result = await model.generateContent(prompt);
-    var finalResult = result.response.text();
+    const genAI = new GoogleGenerativeAI(process.env.API_KEY)
+    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' })
+
+    const prompt = `Summarize the following YouTube comments:\n${comments.join(
+      '\n'
+    )}`
+    const result = await model.generateContent(prompt)
+    var finalResult = result.response.text()
     try {
-      const videoDuration = await fetchVideoDetails(videoId, API_KEY);
-      const totalDurationInSeconds = parseISO8601Duration(videoDuration);
+      const videoDuration = await fetchVideoDetails(videoId, API_KEY)
+      const totalDurationInSeconds = parseISO8601Duration(videoDuration)
       var totalDurationv1 = formatDuration(totalDurationInSeconds)
-      var speedDurations = calculateSpeedDurations(totalDurationInSeconds);
-  
+      var speedDurations = calculateSpeedDurations(totalDurationInSeconds)
+    } catch (error) {
+      console.error(error)
+      res.status(500).send('Error fetching video duration')
     }
-    catch (error) {
-      console.error(error);
-      res.status(500).send('Error fetching video duration');
-    }
-   // res.send(result.response.text());
+    // res.send(result.response.text());
   } catch (error) {
-    console.error(error);
-    res.status(500).send('Error fetching comments');
-  }  
-//at speed part
+    console.error(error)
+    res.status(500).send('Error fetching comments')
+  }
+  //at speed part
   try {
-    const videoDuration = await fetchVideoDetails(videoId, API_KEY);
-    const totalDurationInSeconds = parseISO8601Duration(videoDuration);
-    var speedDurations = calculateSpeedDurations(totalDurationInSeconds);
+    const videoDuration = await fetchVideoDetails(videoId, API_KEY)
+    const totalDurationInSeconds = parseISO8601Duration(videoDuration)
+    var speedDurations = calculateSpeedDurations(totalDurationInSeconds)
 
     //res.render('speed-durations', { speedDurations });
   } catch (error) {
-    console.error(error);
-    res.status(500).send('Error fetching video duration');
+    console.error(error)
+    res.status(500).send('Error fetching video duration')
   }
   //likes part
   const videoDetailsUrl = `https://www.googleapis.com/youtube/v3/videos?part=statistics&id=${videoId}&key=${API_KEY}`
   const videoDetailsResponse = await axios.get(videoDetailsUrl)
   const videoStats = videoDetailsResponse.data.items[0].statistics
   const { viewCount, likeCount, dislikeCount, commentCount } = videoStats
-  
+  //img part
   const newLink = `https://www.googleapis.com/youtube/v3/videos?key=${API_KEY}&part=snippet&id=${videoId}`
   const newLinkResponse = await axios.get(newLink)
   console.log(newLink)
   const imgUrl = newLinkResponse.data.items[0].snippet.thumbnails.maxres.url
   console.log(imgUrl)
-  const description = newLinkResponse.data.items[0].snippet.title;
-  console.log(description);
-  res.render('comments', { speedDurations,finalResult ,totalDurationv1, viewCount,
-    likeCount,
-    dislikeCount: dislikeCount || 'Unavailable', commentCount ,imgUrl,description
-  }
-  )
-});
-
-// Route: Get video duration at different playback speeds
-app.get('/atspeed', async (req, res) => {
-  const videoId = req.query.videoId;
-  const API_KEY = process.env.YOUTUBE_API_KEY;
-
-  try {
-    const videoDuration = await fetchVideoDetails(videoId, API_KEY);
-    const totalDurationInSeconds = parseISO8601Duration(videoDuration);
-    const speedDurations = calculateSpeedDurations(totalDurationInSeconds);
-
-    res.render('speed-durations', { speedDurations });
-  } catch (error) {
-    console.error(error);
-    res.status(500).send('Error fetching video duration');
-  
-  }
-
-  
-});
-app.get('/likes', async (req, res) => {
-  const videoId = req.query.videoId
-  const API_KEY = process.env.YOUTUBE_API_KEY
-  const videoDetailsUrl = `https://www.googleapis.com/youtube/v3/videos?part=statistics&id=${videoId}&key=${API_KEY}`
-  const videoDetailsResponse = await axios.get(videoDetailsUrl)
-  const videoStats = videoDetailsResponse.data.items[0].statistics
-  const { viewCount, likeCount, dislikeCount, commentCount } = videoStats
-
-  gl1 =viewCount;
-  // Render the data
-  res.render('video-analysis1', {
+  //title part
+  const description = newLinkResponse.data.items[0].snippet.title
+  console.log(description)
+  res.render('comments', {
+    speedDurations,
+    finalResult,
+    totalDurationv1,
     viewCount,
     likeCount,
     dislikeCount: dislikeCount || 'Unavailable',
-    commentCount
+    commentCount,
+    imgUrl,
+    description
   })
 })
 
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3000
 app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
-  
-});
-
-
-
+  console.log(`Server is running on port ${PORT}`)
+})
