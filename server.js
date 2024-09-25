@@ -198,16 +198,33 @@ app.get('/album-duration', async (req, res) => {
   const playlistId = req.query.playlistId
   const API_KEY = process.env.YOUTUBE_API_KEY
   const url = `https://www.googleapis.com/youtube/v3/playlistItems?part=contentDetails&maxResults=50&playlistId=${playlistId}&key=${API_KEY}`
- 
+  console.log(url);
   try {
     const response = await axios.get(url)
-    console.dir(response) // Provides detailed view
-    const videoIds = response.data.items.map(
-      item => item.contentDetails.videoId
-    )
+    //console.dir(response) // Provides detailed view
+    const videoIds = response.data.items.map(item => item.contentDetails.videoId)
     const noOfVideosInPlayList = videoIds.length
     console.log(noOfVideosInPlayList)
     // Fetch video durations
+        // Fetch video details (thumbnails) for each video in the playlist
+
+        async function individualvidsHelper(videoIds){
+            let i=1
+          for (const Id of videoIds) {
+            const linkforOne = `https://www.googleapis.com/youtube/v3/videos?key=${API_KEY}&part=snippet&id=${Id}`
+            const newLinkResponse = await axios.get(linkforOne)
+            
+            // Logging the URL being used to make the request
+         
+    
+            // Extracting and logging the image URL
+            const imgUrl = newLinkResponse.data.items[0].snippet.thumbnails.default.url
+            console.log(`Number :${i++}`, imgUrl);
+          }
+        }
+    
+        individualvidsHelper(videoIds)
+    
 
     let totalDurationInSeconds = 0
     for (const videoId of videoIds) {
@@ -225,6 +242,7 @@ app.get('/album-duration', async (req, res) => {
       speedDurations,
       averageDuration
     })
+
   } catch (error) {
     console.error(error)
     res.status(500).send('Error fetching album duration')
