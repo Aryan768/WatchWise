@@ -1,7 +1,44 @@
 import React, { useState } from 'react';
 import axios from 'axios';
+ function App(){
+  const [input,setInput]= useState('')
+  const [x,setX] =useState('')
 
-const App = () => {
+
+const handleSubmit = async(e)=>{
+  e.preventDefault()
+setX(input)
+try{
+
+const res = await axios.post('https://locall.host/3000/comments',{x})
+console.log(res);
+}catch(err){
+  console.error(err);
+}
+
+}
+
+
+  //console.log(input);
+  return (
+    <>
+    <div id='search bar'>
+      <form onSubmit={handleSubmit} >
+        <input className='border-red-400' value={input} onChange={(e)=>{setInput(e.target.value)}} type="text" id='linkUser' />
+        <button >Click Me</button>
+      </form>
+    
+    </div>
+    <p className='text-zinc-200'>{x}</p>
+    </>
+    
+  )
+
+
+ } ;
+ export default App;
+
+/*const App = () => {
   const [input, setInput] = useState('');
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -54,7 +91,7 @@ const App = () => {
             type="text"
             className="mt-2 p-2 border border-gray-300 rounded w-full"
             value={input}
-            onChange={(e) => setInput(e.target.value)}
+            onChange={(e) => setInput(e.target.value)}   /////////
             placeholder="Paste your YouTube link here"
           />
           <button className="mt-4 bg-blue-500 text-white p-2 rounded w-full">
@@ -75,3 +112,4 @@ const App = () => {
 };
 
 export default App;
+*/
