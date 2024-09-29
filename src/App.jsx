@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import Navbar from './components/Navbar';
 
 function App() {
   const [input, setInput] = useState('');
@@ -26,7 +27,7 @@ function App() {
 
   return (
     <>
-    
+ <Navbar/>
     <header className="bg-blue-300 text-white p-4">
   <h1 className="text-2xl font-bold">WatchWise</h1>
 </header>
