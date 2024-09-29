@@ -1,42 +1,64 @@
 import React, { useState } from 'react';
-import axios from 'axios';
- function App(){
-  const [input,setInput]= useState('')
-  const [x,setX] =useState('')
 
+function App() {
+  const [input, setInput] = useState('');
+  const [x, setX] = useState('');
 
-const handleSubmit = async(e)=>{
-  e.preventDefault()
-setX(input)
-try{
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setX(input); // Store the input into x
 
-const res = await axios.post('https://locall.host/3000/comments',{x})
-console.log(res);
-}catch(err){
-  console.error(err);
-}
+    try {
+      const result = await fetch("http://localhost:3000/c", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ x: input }) // Send x as part of an object
+      });
 
-}
+      const response = await result.json(); // Parse the response as JSON
+      console.log(response); // Log the response message
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
-
-  //console.log(input);
   return (
     <>
-    <div id='search bar'>
-      <form onSubmit={handleSubmit} >
-        <input className='border-red-400' value={input} onChange={(e)=>{setInput(e.target.value)}} type="text" id='linkUser' />
-        <button >Click Me</button>
-      </form>
     
-    </div>
-    <p className='text-zinc-200'>{x}</p>
+    <header className="bg-blue-300 text-white p-4">
+  <h1 className="text-2xl font-bold">WatchWise</h1>
+</header>
+      <div id='search-bar'>
+        <form onSubmit={handleSubmit}>
+          <input
+            className='border-red-400'
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            type="text"
+            id='linkUser'
+          />
+          <button type="submit">Click Me</button>
+        </form>
+      </div>
+      <p className='text-zinc-200'>{x}</p>
     </>
-    
-  )
+  );
+}
 
+export default App;
 
- } ;
- export default App;
+/*
+  const onSubmit = async (data) => {
+    await delay(2) // simulating network delay
+    let r = await fetch("http://localhost:3000/", {method: "POST",  headers: {
+      "Content-Type": "application/json", 
+    }, body: JSON.stringify(data)})
+    let res = await r.text()
+    console.log(data, res)
+    // if(data.username !== "sh*/
+
 
 /*const App = () => {
   const [input, setInput] = useState('');
