@@ -162,11 +162,20 @@ app.get('/', (req, res) => {
 
 // Helper function: Fetch video details by ID
 async function fetchVideoDetails (videoId, API_KEY) {
-  const videoDetailsUrl = `https://www.googleapis.com/youtube/v3/videos?part=contentDetails&id=${videoId}&key=${API_KEY}`
-
-  const response = await axios.get(videoDetailsUrl)
-  //console.log(videoDetailsUrl)
-  return response.data.items[0].contentDetails.duration
+  async function fetchVideoDetails(videoId, API_KEY) {
+    const videoDetailsUrl = `https://www.googleapis.com/youtube/v3/videos?part=contentDetails&id=${videoId}&key=${API_KEY}`;
+  
+    const response = await axios.get(videoDetailsUrl);
+    const videoItem = response.data.items[0];
+  
+    // Check if contentDetails exists
+    if (!videoItem || !videoItem.contentDetails) {
+      throw new Error(`No contentDetails found for video ID: ${videoId}`);
+    }
+  
+    return videoItem.contentDetails.duration;
+  }
+  
 }
 
 // Helper function: Parse ISO 8601 duration format (like PT1H2M30S)
@@ -333,106 +342,76 @@ app.get('/comments', async (req, res) => {
     description
   })
 })
-
-app.post('/c', async(req, res) => {
+app.post('/c', async (req, res) => {
   const { x } = req.body; // Ensure you're receiving the body as an object with { x }
-clientUrl=x
+  const clientUrl = x;
 
-  const parsedUrl = new URL(clientUrl);
-  const isPlaylist = parsedUrl.searchParams.has('list');
-  const videoId = parsedUrl.searchParams.get("v"); // Extracts the video ID
+  try {
+    const parsedUrl = new URL(clientUrl);
+    const isPlaylist = parsedUrl.searchParams.has('list');
+    const videoId = parsedUrl.searchParams.get("v"); // Extracts the video ID
 
-  if(isPlaylist)
-  {
-    res.status(404).json({error:"This is a playlist video please provide individual video link"})
-  }
-  if (!videoId) {
-    // Send an error if no video ID is found
-    return res.status(400).json({ error: "Invalid video link. No video ID found." });
-  }
-  else{
-    //Start here
-    try{
-      const API_KEY = process.env.YOUTUBE_API_KEY
-      const url = `https://www.googleapis.com/youtube/v3/commentThreads?part=snippet&videoId=${videoId}&key=${API_KEY}`
-    
-      try {
-        const response = await axios.get(url)
-    
-        // Remove HTML tags from comments
-        const comments = response.data.items.map(item => {
-          const rawComment = item.snippet.topLevelComment.snippet.textDisplay
-          return rawComment.replace(/<\/?[^>]+(>|$)|[*]/g, '')
-        })
-    
-        // Summarize comments using Google Generative AI
-        const genAI = new GoogleGenerativeAI(process.env.API_KEY)
-        const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' })
-    
-        const prompt = `Summarize the following YouTube comments:\n${comments.join(
-          '\n'
-        )}`
-        const result = await model.generateContent(prompt)
-        var finalResult = result.response.text()
-        try {
-          const videoDuration = await fetchVideoDetails(videoId, API_KEY)
-          const totalDurationInSeconds = parseISO8601Duration(videoDuration)
-          var totalDurationv1 = formatDuration(totalDurationInSeconds)
-          var speedDurations = calculateSpeedDurations(totalDurationInSeconds)
-        } catch (error) {
-          console.error(error)
-          res.status(500).send('Error fetching video duration')
-        }
-        // res.send(result.response.text());
-      } catch (error) {
-        console.error(error)
-        res.status(500).send('Error fetching comments')
-      }
-      //at speed part
-      try {
-        const videoDuration = await fetchVideoDetails(videoId, API_KEY)
-        const totalDurationInSeconds = parseISO8601Duration(videoDuration)
-        var speedDurations = calculateSpeedDurations(totalDurationInSeconds)
-    
-        //res.render('speed-durations', { speedDurations });
-      } catch (error) {
-        console.error(error)
-        res.status(500).send('Error fetching video duration')
-      }
-      //likes part
-      const videoDetailsUrl = `https://www.googleapis.com/youtube/v3/videos?part=statistics&id=${videoId}&key=${API_KEY}`
-      const videoDetailsResponse = await axios.get(videoDetailsUrl)
-      const videoStats = videoDetailsResponse.data.items[0].statistics
-      const { viewCount, likeCount, dislikeCount, commentCount } = videoStats
-      //img part
-      const newLink = `https://www.googleapis.com/youtube/v3/videos?key=${API_KEY}&part=snippet&id=${videoId}`
-      const newLinkResponse = await axios.get(newLink)
-      console.log(newLink)
-      const imgUrl = newLinkResponse.data.items[0].snippet.thumbnails.maxres.url
-      console.log(imgUrl)
-      //title part
-      const description = newLinkResponse.data.items[0].snippet.title
-      console.log(description)
-      res.json({
-        message : "Video data fetched successfully for 1 video",
-        speedDurations,
-        finalResult,
-        totalDurationv1,
-        viewCount,
-        likeCount,
-        dislikeCount: dislikeCount || 'Unavailable',
-        commentCount,
-        imgUrl,
-        description
-      })
-    }catch(error){
-      console.error(error)
+    if (isPlaylist) {
+      return res.status(400).json({ error: "This is a playlist. Please provide an individual video link." });
     }
-  }
-  console.log(videoId); // Output: "dQw4w9WgXcQ"
 
-  console.log(x); // Log the value of x
-  res.json({ message: "Ok, got it broo!!" }); // Respond with valid JSON
+    if (!videoId) {
+      return res.status(400).json({ error: "Invalid video link. No video ID found." });
+    }
+
+    const API_KEY = process.env.YOUTUBE_API_KEY;
+
+    // Fetch YouTube comments
+    const commentsUrl = `https://www.googleapis.com/youtube/v3/commentThreads?part=snippet&videoId=${videoId}&key=${API_KEY}`;
+    const commentsResponse = await axios.get(commentsUrl);
+
+    // Extract and clean comments
+    const comments = commentsResponse.data.items.map(item => {
+      const rawComment = item.snippet.topLevelComment.snippet.textDisplay;
+      return rawComment.replace(/<\/?[^>]+(>|$)|[*]/g, ''); // Remove HTML tags and asterisks
+    });
+
+    // Summarize comments using Google Generative AI
+    const genAI = new GoogleGenerativeAI(process.env.API_KEY);
+    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+
+    const prompt = `Summarize the following YouTube comments:\n${comments.join('\n')}`;
+    const result = await model.generateContent(prompt);
+    const finalResult = result.response.text(); // Corrected response extraction
+
+    // Fetch video details (duration, likes, views, etc.)
+    const videoDetailsUrl = `https://www.googleapis.com/youtube/v3/videos?part=statistics,snippet,contentDetails&id=${videoId}&key=${API_KEY}`;
+    const videoDetailsResponse = await axios.get(videoDetailsUrl);
+    const videoData = videoDetailsResponse.data.items[0];
+
+    const videoStats = videoData.statistics;
+    const { viewCount, likeCount, dislikeCount, commentCount } = videoStats;
+    const videoDuration = videoData.contentDetails.duration; // Duration in ISO8601 format
+    const title = videoData.snippet.title;
+    const imgUrl = videoData.snippet.thumbnails.maxres?.url || videoData.snippet.thumbnails.default.url;
+
+    // Convert ISO8601 duration to seconds and calculate at different speeds
+    const totalDurationInSeconds = parseISO8601Duration(videoDuration);
+    const totalDurationv1 = formatDuration(totalDurationInSeconds); // Human-readable duration
+    const speedDurations = calculateSpeedDurations(totalDurationInSeconds);
+
+    // Send the response with all fetched and computed data
+    res.json({
+      message: "Video data fetched successfully",
+      speedDurations,
+      finalResult,
+      totalDurationv1,
+      viewCount,
+      likeCount,
+      dislikeCount: dislikeCount || 'Unavailable',
+      commentCount,
+      imgUrl,
+      title
+    });
+  } catch (error) {
+    console.error("Error processing the request:", error);
+    res.status(500).json({ error: "An internal error occurred while processing the video." });
+  }
 });
 
 const PORT = process.env.PORT || 3000
