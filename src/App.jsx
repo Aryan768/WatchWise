@@ -3,6 +3,9 @@ import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import FormComponent from './components/FormComponent';
 import ResponseComponent from './components/ResponseComponent';
+import FormComponentPlaylist from './components/FormComponentPlaylist';
+import ResponseComponentPlaylist from './components/ResponseComponentPlaylist';
+
 import { ClipLoader } from 'react-spinners'; // Spinner
 
 function App() {
@@ -10,6 +13,11 @@ function App() {
   const [response, setResponse] = useState(null);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
+  //Playlist
+  const [pInput,setpInput] = useState('');
+  const [responseP, setResponseP] = useState(null);
+  const [errorP, setErrorP] = useState(null);
+  const [loadingP, setLoadingP] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -36,6 +44,35 @@ function App() {
       setResponse(null);
     } finally {
       setLoading(false);
+    }
+  };
+  //PlayList
+
+  const handleSubmitP = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      const resultP = await fetch("http://localhost:3000/playlist", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ y: pInput }),
+      });
+
+      if (!resultP.ok) {
+        throw new Error('Failed to fetch data. Please try again.');
+      }
+
+      const dataP = await resultP.json();
+      setResponseP(dataP);
+      setErrorP(null);
+    } catch (err) {
+      setErrorP(err.message);
+      setResponseP(null);
+    } finally {
+      setLoadingP(false);
     }
   };
 
@@ -67,9 +104,28 @@ function App() {
     },
     {
       path: "/playlist",
-      element: () => <div>Playlist Component</div>, // Replace with actual playlist component
-    },
-  ]);
+      element:  <>
+      <Navbar />
+      <FormComponentPlaylist input={pInput} handleSubmit={handleSubmitP} setInput={setpInput} />
+
+      {loading && (
+        <div className="flex justify-center items-center h-screen">
+          <ClipLoader color="#4A90E2" loading={loading} size={150} />
+        </div>
+      )}
+
+      {responseP && !loadingP && (
+        <ResponseComponentPlaylist response={responseP} input={pInput} />
+      )}
+
+      {error && (
+        <div className="text-red-500 mt-4">
+          <p>{errorP}</p>
+        </div>
+      )}
+    </>
+    }
+ ])
 
   return <RouterProvider router={router} />;
 }

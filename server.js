@@ -209,61 +209,76 @@ function formatDuration (totalSeconds) {
 }
 
 // Route: Calculate Album Duration
-app.get('/album-duration', async (req, res) => {
-  const playlistId = req.query.playlistId
-  const API_KEY = process.env.YOUTUBE_API_KEY
-  const url = `https://www.googleapis.com/youtube/v3/playlistItems?part=contentDetails&maxResults=50&playlistId=${playlistId}&key=${API_KEY}`
-  console.log(url);
+app.post('/playlist', async (req, res) => {
+  const { y } = req.body;
+  console.log(y);
   try {
-    const response = await axios.get(url)
-    //console.dir(response) // Provides detailed view
-    const videoIds = response.data.items.map(item => item.contentDetails.videoId)
-    const noOfVideosInPlayList = videoIds.length
-    console.log(noOfVideosInPlayList)
-    // Fetch video durations
-        // Fetch video details (thumbnails) for each video in the playlist
-
-        async function individualvidsHelper(videoIds){
-            let i=1
-          for (const Id of videoIds) {
-            const linkforOne = `https://www.googleapis.com/youtube/v3/videos?key=${API_KEY}&part=snippet&id=${Id}`
-            const newLinkResponse = await axios.get(linkforOne)
-            
-            // Logging the URL being used to make the request
-         
-    
-            // Extracting and logging the image URL
-            const imgUrl = newLinkResponse.data.items[0].snippet.thumbnails.default.url
-            console.log(`Number :${i++}`, imgUrl);
-          }
-        }
-    
-        individualvidsHelper(videoIds)
-    
-
-    let totalDurationInSeconds = 0
-    for (const videoId of videoIds) {
-      const videoDuration = await fetchVideoDetails(videoId, API_KEY)
-      totalDurationInSeconds += parseISO8601Duration(videoDuration)
+    const parsedUrl = new URL(y);
+    const isVideo = parsedUrl.searchParams.has('v');
+    const videoId = parsedUrl.searchParams.get("list"); // Extracts the playlist ID
+    console.log(videoId)
+    if (isVideo) {
+      return res.status(400).json({ error: "This is a video. Please provide a playlist link." });
     }
 
-    const totalDuration = formatDuration(totalDurationInSeconds)
-    const speedDurations = calculateSpeedDurations(totalDurationInSeconds)
-    const averageDuration = formatDuration(
-      totalDurationInSeconds / noOfVideosInPlayList
-    )
-    res.render('album-duration', {
-      totalDuration,
-      speedDurations,
-      averageDuration
-    })
+    if (!videoId) {
+      return res.status(400).json({ error: "Invalid video link. No video ID found." });
+    }
 
+    const playlistId = videoId;
+    const API_KEY = process.env.YOUTUBE_API_KEY;
+    const url = `https://www.googleapis.com/youtube/v3/playlistItems?part=contentDetails&maxResults=50&playlistId=${playlistId}&key=${API_KEY}`;
+    console.log(url);
+
+    try {
+      const response = await axios.get(url);
+      const videoIds = response.data.items.map(item => item.contentDetails.videoId);
+      const noOfVideosInPlayList = videoIds.length;
+      console.log(noOfVideosInPlayList);
+
+      // Fetch video details (thumbnails) for each video in the playlist
+      async function individualvidsHelper(videoIds) {
+        let i = 1;
+        for (const Id of videoIds) {
+          const linkforOne = `https://www.googleapis.com/youtube/v3/videos?key=${API_KEY}&part=snippet&id=${Id}`;
+          const newLinkResponse = await axios.get(linkforOne);
+
+          // Extracting and logging the image URL
+          const imgUrl = newLinkResponse.data.items[0].snippet.thumbnails.default.url;
+          console.log(`Number :${i++}`, imgUrl);
+        }
+      }
+
+      individualvidsHelper(videoIds);
+
+      // Calculate total duration
+      let totalDurationInSeconds = 0;
+      for (const videoId of videoIds) {
+        const videoDuration = await fetchVideoDetails(videoId, API_KEY);
+        totalDurationInSeconds += parseISO8601Duration(videoDuration);
+      }
+
+      const totalDuration = formatDuration(totalDurationInSeconds);
+      const speedDurations = calculateSpeedDurations(totalDurationInSeconds);
+      const averageDuration = formatDuration(totalDurationInSeconds / noOfVideosInPlayList);
+
+      res.json ({
+        message : "Message got successfully",
+        totalDuration,
+        speedDurations,
+        averageDuration,
+      });
+
+    } catch (error) {
+      console.error(error);
+      res.status(500).send('Error fetching album duration');
+    }
   } catch (error) {
-    console.error(error)
-    res.status(500).send('Error fetching album duration')
+    console.error("Error processing the request:", error);
+    res.status(500).json({ error: "An internal error occurred while processing the video." });
   }
-})
-var clientUrl;
+});
+
 // Route: Fetch YouTube Comments and Summarize
 app.get('/comments', async (req, res) => {
   
