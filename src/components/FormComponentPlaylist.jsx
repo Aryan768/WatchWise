@@ -1,13 +1,13 @@
 import React from 'react';
 
-const FormComponentP = ({ input, handleSubmit, setInput }) => {
+const FormComponentPlaylist = ({ pInput, handleSubmitP, setpInput }) => {
   return (
     <div className='m-24'>
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmitP}>
         <input
           className='border-red-400'
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
+          value={pInput}
+          onChange={(e) => setpInput(e.target.value)}
           type="text"
           id='linkUser'
           placeholder='Enter your link here...'
@@ -18,4 +18,4 @@ const FormComponentP = ({ input, handleSubmit, setInput }) => {
   );
 };
 
-export default FormComponentP;
+export default FormComponentPlaylist;

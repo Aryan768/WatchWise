@@ -7,6 +7,7 @@ import FormComponentPlaylist from './components/FormComponentPlaylist';
 import ResponseComponentPlaylist from './components/ResponseComponentPlaylist';
 
 import { ClipLoader } from 'react-spinners'; // Spinner
+import Cards from './components/Cards';
 
 function App() {
   const [input, setInput] = useState('');
@@ -50,7 +51,7 @@ function App() {
 
   const handleSubmitP = async (e) => {
     e.preventDefault();
-    setLoading(true);
+    setLoadingP(true);
 
     try {
       const resultP = await fetch("http://localhost:3000/playlist", {
@@ -106,23 +107,24 @@ function App() {
       path: "/playlist",
       element:  <>
       <Navbar />
-      <FormComponentPlaylist input={pInput} handleSubmit={handleSubmitP} setInput={setpInput} />
+      <FormComponentPlaylist pInput={pInput} handleSubmitP={handleSubmitP} setpInput={setpInput} />
 
-      {loading && (
+      {loadingP && (
         <div className="flex justify-center items-center h-screen">
-          <ClipLoader color="#4A90E2" loading={loading} size={150} />
+          <ClipLoader color="#4A90E2" loading={loadingP} size={150} />
         </div>
       )}
 
       {responseP && !loadingP && (
-        <ResponseComponentPlaylist response={responseP} input={pInput} />
+        <ResponseComponentPlaylist responseP={responseP} pInput={pInput} />
       )}
-
-      {error && (
+        <Cards/>     
+         {error && (
         <div className="text-red-500 mt-4">
           <p>{errorP}</p>
         </div>
       )}
+      
     </>
     }
  ])

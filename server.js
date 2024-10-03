@@ -161,7 +161,7 @@ app.get('/', (req, res) => {
 })
 
 // Helper function: Fetch video details by ID
-async function fetchVideoDetails (videoId, API_KEY) {
+
   async function fetchVideoDetails(videoId, API_KEY) {
     const videoDetailsUrl = `https://www.googleapis.com/youtube/v3/videos?part=contentDetails&id=${videoId}&key=${API_KEY}`;
   
@@ -176,8 +176,6 @@ async function fetchVideoDetails (videoId, API_KEY) {
     return videoItem.contentDetails.duration;
   }
   
-}
-
 // Helper function: Parse ISO 8601 duration format (like PT1H2M30S)
 function parseISO8601Duration (duration) {
   const match = duration.match(/PT(\d+H)?(\d+M)?(\d+S)?/)
@@ -214,12 +212,12 @@ app.post('/playlist', async (req, res) => {
   console.log(y);
   try {
     const parsedUrl = new URL(y);
-    const isVideo = parsedUrl.searchParams.has('v');
+    //const isVideo = parsedUrl.searchParams.has('v');
     const videoId = parsedUrl.searchParams.get("list"); // Extracts the playlist ID
     console.log(videoId)
-    if (isVideo) {
-      return res.status(400).json({ error: "This is a video. Please provide a playlist link." });
-    }
+    // if (isVideo) {
+    //   return res.status(400).json({ error: "This is a video. Please provide a playlist link." });
+    // }
 
     if (!videoId) {
       return res.status(400).json({ error: "Invalid video link. No video ID found." });
@@ -255,10 +253,12 @@ app.post('/playlist', async (req, res) => {
       let totalDurationInSeconds = 0;
       for (const videoId of videoIds) {
         const videoDuration = await fetchVideoDetails(videoId, API_KEY);
+        console.log(videoDuration)
         totalDurationInSeconds += parseISO8601Duration(videoDuration);
       }
 
       const totalDuration = formatDuration(totalDurationInSeconds);
+      console.log(totalDuration)
       const speedDurations = calculateSpeedDurations(totalDurationInSeconds);
       const averageDuration = formatDuration(totalDurationInSeconds / noOfVideosInPlayList);
 
