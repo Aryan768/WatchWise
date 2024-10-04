@@ -227,7 +227,8 @@ app.post('/playlist', async (req, res) => {
     const API_KEY = process.env.YOUTUBE_API_KEY;
     const url = `https://www.googleapis.com/youtube/v3/playlistItems?part=contentDetails&maxResults=50&playlistId=${playlistId}&key=${API_KEY}`;
     console.log(url);
-
+    let imgUrls = []
+    let eachComments = [];
     try {
       const response = await axios.get(url);
       const videoIds = response.data.items.map(item => item.contentDetails.videoId);
@@ -242,12 +243,44 @@ app.post('/playlist', async (req, res) => {
           const newLinkResponse = await axios.get(linkforOne);
 
           // Extracting and logging the image URL
-          const imgUrl = newLinkResponse.data.items[0].snippet.thumbnails.default.url;
+          const thumbnails = newLinkResponse.data.items[0].snippet.thumbnails;
+          const imgUrl = thumbnails.maxres?.url || thumbnails.standard?.url || thumbnails.high?.url || thumbnails.medium?.url || thumbnails.default.url;
+          imgUrls.push(imgUrl)
           console.log(`Number :${i++}`, imgUrl);
-        }
-      }
+          //For eact videos we are adding the prompt!!!!!!!
 
-      individualvidsHelper(videoIds);
+        
+  const urlPrompt = `https://www.googleapis.com/youtube/v3/commentThreads?part=snippet&videoId=${Id}&key=${API_KEY}`
+       
+  try {
+    const response = await axios.get(urlPrompt)
+
+    // Remove HTML tags from comments
+    if (response.data.items && response.data.items.length > 0) {
+    const comments = response.data.items.map(item => {
+      const rawComment = item.snippet.topLevelComment.snippet.textDisplay
+      return rawComment.replace(/<\/?[^>]+(>|$)|[*]/g, '')
+    })
+
+    // Summarize comments using Google Generative AI
+    const genAI = new GoogleGenerativeAI(process.env.API_KEY)
+    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' })
+
+    const prompt = `Summarize the following YouTube comments:\n${comments.join(
+      '\n'
+    )}`
+    const result = await model.generateContent(prompt)
+    var finalResult =  result.response.text()
+    eachComments.push(finalResult);
+     } else{
+      eachComments.push("Comments are turned Off for this Video!!!!")
+    }
+        }catch(err){
+          console.error(err)
+        }
+      }}
+
+     await individualvidsHelper(videoIds);
 
       // Calculate total duration
       let totalDurationInSeconds = 0;
@@ -261,12 +294,14 @@ app.post('/playlist', async (req, res) => {
       console.log(totalDuration)
       const speedDurations = calculateSpeedDurations(totalDurationInSeconds);
       const averageDuration = formatDuration(totalDurationInSeconds / noOfVideosInPlayList);
-
+   //   console.log(eachComments)
       res.json ({
         message : "Message got successfully",
         totalDuration,
         speedDurations,
         averageDuration,
+        imgUrls,
+        eachComments
       });
 
     } catch (error) {

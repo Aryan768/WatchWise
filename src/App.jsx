@@ -116,9 +116,12 @@ function App() {
       )}
 
       {responseP && !loadingP && (
+        <>
         <ResponseComponentPlaylist responseP={responseP} pInput={pInput} />
+      //  <Cards responseP={responseP}/>     
+        </>
       )}
-        <Cards/>     
+     
          {error && (
         <div className="text-red-500 mt-4">
           <p>{errorP}</p>
