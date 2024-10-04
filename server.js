@@ -227,13 +227,30 @@ app.post('/playlist', async (req, res) => {
     const API_KEY = process.env.YOUTUBE_API_KEY;
     const url = `https://www.googleapis.com/youtube/v3/playlistItems?part=contentDetails&maxResults=50&playlistId=${playlistId}&key=${API_KEY}`;
     console.log(url);
-    let imgUrls = []
-    let eachComments = [];
-    try {
-      const response = await axios.get(url);
-      const videoIds = response.data.items.map(item => item.contentDetails.videoId);
-      const noOfVideosInPlayList = videoIds.length;
-      console.log(noOfVideosInPlayList);
+    const fromVidNumber = 2;// req.body.fromVidNumber; // Get from user input
+const toVideoNumber = 3 ;//req.body.toVideoNumber; // Get from user input
+
+let imgUrls = []
+let eachComments = [];
+
+try {
+  const response = await axios.get(url);
+  let videoIds = response.data.items.map(item => item.contentDetails.videoId);
+  const noOfVideosInPlayList = videoIds.length;
+  console.log(`Total videos in playlist: ${noOfVideosInPlayList}`);
+
+  // Validate and slice video IDs if a range is provided
+  if (typeof fromVidNumber !== 'undefined' && typeof toVideoNumber !== 'undefined') {
+    if (fromVidNumber < 1 || toVideoNumber > noOfVideosInPlayList || fromVidNumber > toVideoNumber) {
+      return res.status(400).json({ error: "Invalid video range provided." });
+    }
+
+    // Slicing the array from 'fromVidNumber - 1' to 'toVideoNumber' (0-based index)
+    videoIds = videoIds.slice(fromVidNumber - 1, toVideoNumber);
+    console.log(`Processing videos from ${fromVidNumber} to ${toVideoNumber}`);
+  } else {
+    console.log("Processing all videos in the playlist");
+  }
 
       // Fetch video details (thumbnails) for each video in the playlist
       async function individualvidsHelper(videoIds) {
