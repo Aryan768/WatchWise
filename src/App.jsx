@@ -49,7 +49,7 @@ function App() {
   };
   //PlayList
 
-  const handleSubmitP = async (e) => {
+  const handleSubmitP = async (e ,fromVidNumber,toVidNumber) => {
     e.preventDefault();
     setLoadingP(true);
 
@@ -59,7 +59,7 @@ function App() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ y: pInput }),
+        body: JSON.stringify({ y: pInput,from:fromVidNumber,to:toVidNumber}),
       });
 
       if (!resultP.ok) {
@@ -107,6 +107,7 @@ function App() {
       path: "/playlist",
       element:  <>
       <Navbar />
+      
       <FormComponentPlaylist pInput={pInput} handleSubmitP={handleSubmitP} setpInput={setpInput} />
 
       {loadingP && (

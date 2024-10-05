@@ -209,6 +209,7 @@ function formatDuration (totalSeconds) {
 // Route: Calculate Album Duration
 app.post('/playlist', async (req, res) => {
   const { y } = req.body;
+  const {from,to} =req.body;
   console.log(y);
   try {
     const parsedUrl = new URL(y);
@@ -227,8 +228,10 @@ app.post('/playlist', async (req, res) => {
     const API_KEY = process.env.YOUTUBE_API_KEY;
     const url = `https://www.googleapis.com/youtube/v3/playlistItems?part=contentDetails&maxResults=50&playlistId=${playlistId}&key=${API_KEY}`;
     console.log(url);
-    const fromVidNumber = 2;// req.body.fromVidNumber; // Get from user input
-const toVideoNumber = 3 ;//req.body.toVideoNumber; // Get from user input
+    const fromVidNumber = from;// req.body.fromVidNumber; // Get from user input
+    console.log(from);
+    console.log(to);
+const toVideoNumber = to;//req.body.toVideoNumber; // Get from user input
 
 let imgUrls = []
 let eachComments = [];
