@@ -42,7 +42,7 @@ const Cards = ({ responseP }) => {
                         </svg>
                       </span>
                       <h3 className="text-lg text-gray-600 font-semibold mb-2">
-                        New York
+                      {responseP.videoTitle}
                       </h3>
                     </div>
                     <p className="text-sm tracking-normal">

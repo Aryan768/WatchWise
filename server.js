@@ -131,7 +131,7 @@
 // app.listen(PORT, () => {
 //   console.log(`Server is running on port ${PORT}`)
 // })
-
+//VideoDescription as speed part front end part
 import express from 'express'
 import axios from 'axios'
 import dotenv from 'dotenv'
@@ -227,14 +227,15 @@ app.post('/playlist', async (req, res) => {
     const playlistId = videoId;
     const API_KEY = process.env.YOUTUBE_API_KEY;
     const url = `https://www.googleapis.com/youtube/v3/playlistItems?part=contentDetails&maxResults=50&playlistId=${playlistId}&key=${API_KEY}`;
-    console.log(url);
+    // console.log(url);
     const fromVidNumber = from;// req.body.fromVidNumber; // Get from user input
     console.log(from);
     console.log(to);
 const toVideoNumber = to;//req.body.toVideoNumber; // Get from user input
 
-let imgUrls = []
+let imgUrls = [];
 let eachComments = [];
+let videoTitle =[];
 
 try {
   const response = await axios.get(url);
@@ -298,6 +299,15 @@ try {
         }catch(err){
           console.error(err)
         }
+        try{
+
+          const newLink = `https://www.googleapis.com/youtube/v3/videos?key=${API_KEY}&part=snippet&id=${videoId}`
+          console.log(newLink)
+          const newLinkResponse = await axios.get(newLink)
+          //title part
+           videoTitle = newLinkResponse.data.items[0].snippet.title
+        }catch(err){console.error(err +" i am the title error ")
+        }
       }}
 
      await individualvidsHelper(videoIds);
@@ -321,7 +331,8 @@ try {
         speedDurations,
         averageDuration,
         imgUrls,
-        eachComments
+        eachComments,
+        videoTitle
       });
 
     } catch (error) {
