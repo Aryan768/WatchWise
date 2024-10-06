@@ -301,11 +301,11 @@ try {
         }
         try{
 
-          const newLink = `https://www.googleapis.com/youtube/v3/videos?key=${API_KEY}&part=snippet&id=${videoId}`
+          const newLink = `https://www.googleapis.com/youtube/v3/videos?key=${API_KEY}&part=snippet&id=${Id}`
           console.log(newLink)
           const newLinkResponse = await axios.get(newLink)
           //title part
-           videoTitle = newLinkResponse.data.items[0].snippet.title
+           videoTitle.push(newLinkResponse.data.items[0].snippet.title) 
         }catch(err){console.error(err +" i am the title error ")
         }
       }}
