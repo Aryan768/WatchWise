@@ -130,6 +130,7 @@
 // const PORT = process.env.PORT || 3000
 // app.listen(PORT, () => {
 //   console.log(`Server is running on port ${PORT}`)
+
 // })
 //VideoDescription as speed part front end part
 import express from 'express'
@@ -137,7 +138,8 @@ import axios from 'axios'
 import dotenv from 'dotenv'
 import bodyParser from 'body-parser'
 import cors from "cors"
-
+import Sentiment from 'sentiment'
+const sentiment = new Sentiment();
 import { GoogleGenerativeAI } from '@google/generative-ai'
 const app = express()
 app.use(cors()) 
@@ -154,7 +156,8 @@ var gl1
 
 // Middleware to parse JSON
 app.use(express.json());
-
+const result = sentiment.analyze('I love this!');
+console.log(result);
 // Home route (for testing)
 app.get('/', (req, res) => {
   res.send('Welcome to the YouTube Analyzer!')
@@ -192,7 +195,7 @@ function calculateSpeedDurations (durationInSeconds) {
 
   speeds.forEach(speed => {
     const newDuration = (durationInSeconds / speed).toFixed(2) // Keep 2 decimal places
-    durations[`atSpeed ${speed}x`] = formatDuration(newDuration) //Computed Property Names in js similar but not same as unordered map in c++
+    durations[`Time with ${speed}x`] = formatDuration(newDuration) //Computed Property Names in js similar but not same as unordered map in c++
   })
 
   return durations
@@ -236,6 +239,7 @@ const toVideoNumber = to;//req.body.toVideoNumber; // Get from user input
 let imgUrls = [];
 let eachComments = [];
 let videoTitle =[];
+let watchWiseScore =[];
 
 try {
   const response = await axios.get(url);
@@ -293,6 +297,21 @@ try {
     const result = await model.generateContent(prompt)
     var finalResult =  result.response.text()
     eachComments.push(finalResult);
+    const sentimentResult = sentiment.analyze(finalResult)
+    console.log(sentimentResult);
+    const score = sentimentResult.score;
+    function getPercentageScore(score)
+    {
+      const maxPossibleScore =10;
+      const percentageScore = Math.min(
+        Math.max(((score + maxPossibleScore) / (2 * maxPossibleScore)) * 100, 0),
+        100
+      ); //  const percentageScore = Math.min((Math.max(((score+maxPossibleScore)/(2*maxPossibleScore)))*100,0),100);
+      watchWiseScore.push(percentageScore);
+    }
+    getPercentageScore(score);
+
+
      } else{
       eachComments.push("Comments are turned Off for this Video!!!!")
     }
@@ -305,7 +324,9 @@ try {
           console.log(newLink)
           const newLinkResponse = await axios.get(newLink)
           //title part
-           videoTitle.push(newLinkResponse.data.items[0].snippet.title) 
+       const videoTitle1 = newLinkResponse.data.items[0].snippet.title
+       videoTitle.push(videoTitle1)
+       
         }catch(err){console.error(err +" i am the title error ")
         }
       }}
@@ -323,8 +344,11 @@ try {
       const totalDuration = formatDuration(totalDurationInSeconds);
       console.log(totalDuration)
       const speedDurations = calculateSpeedDurations(totalDurationInSeconds);
-      const averageDuration = formatDuration(totalDurationInSeconds / noOfVideosInPlayList);
+      const averageDuration = formatDuration(totalDurationInSeconds / videoIds.length);
    //   console.log(eachComments)
+   watchWiseScore.map((percentage)=>{
+    console.log(percentage);
+   })
       res.json ({
         message : "Message got successfully",
         totalDuration,
@@ -332,7 +356,8 @@ try {
         averageDuration,
         imgUrls,
         eachComments,
-        videoTitle
+        videoTitle,
+        watchWiseScore
       });
 
     } catch (error) {
@@ -426,7 +451,7 @@ app.get('/comments', async (req, res) => {
 app.post('/c', async (req, res) => {
   const { x } = req.body; // Ensure you're receiving the body as an object with { x }
   const clientUrl = x;
-
+  
   try {
     const parsedUrl = new URL(clientUrl);
     const isPlaylist = parsedUrl.searchParams.has('list');
@@ -459,7 +484,20 @@ app.post('/c', async (req, res) => {
     const prompt = `Summarize the following YouTube comments:\n${comments.join('\n')}`;
     const result = await model.generateContent(prompt);
     const finalResult = result.response.text(); // Corrected response extraction
-
+    const sentimentResult = sentiment.analyze(finalResult)
+    console.log(sentimentResult);
+    const score = sentimentResult.score;
+    let watchWiseScore;
+    function getPercentageScore(score)
+    {
+      const maxPossibleScore =10;
+      const percentageScore = Math.min(
+        Math.max(((score + maxPossibleScore) / (2 * maxPossibleScore)) * 100, 0),
+        100
+      ); //  const percentageScore = Math.min((Math.max(((score+maxPossibleScore)/(2*maxPossibleScore)))*100,0),100);
+      watchWiseScore =percentageScore;
+    }
+    getPercentageScore(score);
     // Fetch video details (duration, likes, views, etc.)
     const videoDetailsUrl = `https://www.googleapis.com/youtube/v3/videos?part=statistics,snippet,contentDetails&id=${videoId}&key=${API_KEY}`;
     const videoDetailsResponse = await axios.get(videoDetailsUrl);
@@ -487,7 +525,8 @@ app.post('/c', async (req, res) => {
       dislikeCount: dislikeCount || 'Unavailable',
       commentCount,
       imgUrl,
-      title
+      title,
+      watchWiseScore
     });
   } catch (error) {
     console.error("Error processing the request:", error);

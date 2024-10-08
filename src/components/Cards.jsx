@@ -6,7 +6,10 @@ const Cards = ({ responseP }) => {
     <div className="min-h-screen bg-yellow-400 flex justify-center items-center py-20">
       <div className="container mx-auto p-12 bg-gray-100 rounded-xl">
         <h1 className="text-4xl uppercase font-bold from-current mb-8">
-          Responsive dynamic cards
+        
+          <h1 className="bg-gradient-to-r from-blue-600 via-purple-500 to-indigo-400 inline-block text-transparent bg-clip-text">
+          AI based Comments analysis
+        </h1>
         </h1>
 
         <div className="sm:grid sm:grid-cols-2 lg:grid-cols-3 gap-4 space-y-4 sm:space-y-0">
@@ -17,7 +20,7 @@ const Cards = ({ responseP }) => {
                   {/* Using dynamic imgUrl */}
                   <img className="w-full" src={imgUrl} alt="Card image" />
                   <div className="px-4 py-2">
-                    <h1 className="text-xl font-gray-700 font-bold">Papież gigant</h1>
+                    <h1 className="text-xl font-gray-700 font-bold">{responseP.watchWiseScore[index] +'%'}</h1>
                     <div className="flex space-x-2 mt-2">
                       <span>
                         <svg
@@ -42,7 +45,7 @@ const Cards = ({ responseP }) => {
                         </svg>
                       </span>
                       <h3 className="text-lg text-gray-600 font-semibold mb-2">
-                      {responseP.videoTitle}
+                      {responseP.videoTitle[index]}
                       </h3>
                     </div>
                     <p className="text-sm tracking-normal">

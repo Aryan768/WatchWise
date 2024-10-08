@@ -3,7 +3,7 @@
 @tailwind components;
 @tailwind utilities;
 
-body{
+body {
   --tw-bg-opacity: 1;
-  background-color: rgb(170, 162, 206)
+  background-color: rgba(75, 185, 212, 0.8); /* Adjust the opacity as needed */
 }

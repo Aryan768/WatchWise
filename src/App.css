@@ -40,3 +40,20 @@
 .read-the-docs {
   color: #888;
 }
+body {
+  margin: 0;
+  height: 100vh;
+  position: relative; /* Make body position relative */
+  overflow: hidden; /* Hide overflow to avoid scrollbars */
+}
+
+.background-video {
+  position: absolute; /* Ensure the video is positioned absolutely */
+  top: 50%; /* Center vertically */
+  left: 50%; /* Center horizontally */
+  min-width: 100%; /* Ensure it covers the viewport */
+  min-height: 100%; /* Ensure it covers the viewport */
+  z-index: -1; /* Keep it behind other content */
+  transform: translate(-50%, -50%); /* Center the video */
+  object-fit: cover; /* Cover the entire area without stretching */
+}

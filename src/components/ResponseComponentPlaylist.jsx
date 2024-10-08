@@ -9,20 +9,27 @@ const ResponseComponentPlaylist = ({ responseP, pInput }) => {
       </p>
       <div className="mt-4">
         <p>Response from backend:</p>
-        <p className="text-green-600">Likes: {responseP.likeCount}</p>
+        {/* <p className="text-green-600">Likes: {responseP.likeCount}</p> */}
         {/* <p>
           <a href={pInput}>
             <img src={response.imgUrl} alt="thumbnail" width={399} height={485} />
           </a>
         </p> */}
     
-        <p className="text-green-600">Comments Count: {responseP.totalDuration}</p>
-        <p className="text-green-600">Dislikes: {responseP.averageDuration}</p>
-        <p className="text-green-600">View Count: {responseP.message}</p>
+        <p className="text-green-600 font-bold" >TotalDuration(Selected): {responseP.totalDuration}</p>
+        <p className="text-green-600">Average Duration: {responseP.averageDuration}</p>
+        {/* <p className="text-green-600 ">View Count: {responseP.message}</p> */}
         <h1 className="bg-gradient-to-r from-blue-600 via-purple-500 to-indigo-400 inline-block text-transparent bg-clip-text">
-          AI Response
+          At Different Speeds:
         </h1>
-        <p className="text-black">{responseP.message}</p>
+        <div>
+  {Object.entries(responseP.speedDurations).map(([speed, duration], index) => (
+    <p key={index}>
+      {speed}: {duration}
+    </p>
+  ))}
+</div>
+      
       </div>
     </div>
   );

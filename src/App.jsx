@@ -119,7 +119,7 @@ function App() {
       {responseP && !loadingP && (
         <>
         <ResponseComponentPlaylist responseP={responseP} pInput={pInput} />
-      //  <Cards responseP={responseP}/>     
+        <Cards responseP={responseP}/>     
         </>
       )}
      
