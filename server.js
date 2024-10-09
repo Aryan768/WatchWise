@@ -234,7 +234,7 @@ app.post('/playlist', async (req, res) => {
     const url = `https://www.googleapis.com/youtube/v3/playlistItems?part=contentDetails&maxResults=50&playlistId=${playlistId}&key=${API_KEY}`;
     // console.log(url);
     const fromVidNumber = from;// req.body.fromVidNumber; // Get from user input
-    console.log(from + 'Hi');
+    console.log(from);
     console.log(to);
 const toVideoNumber = to;//req.body.toVideoNumber; // Get from user input
 
@@ -250,19 +250,17 @@ try {
   console.log(`Total videos in playlist: ${noOfVideosInPlayList}`);
 
   // Validate and slice video IDs if a range is provided
-  if (typeof fromVidNumber !== 'undefined' && typeof toVideoNumber !== 'undefined') {
+  if (fromVidNumber && toVideoNumber) {
     if (fromVidNumber < 1 || toVideoNumber > noOfVideosInPlayList || fromVidNumber > toVideoNumber) {
       return res.status(400).json({ error: "Invalid video range provided." });
     }
-    else if(fromVidNumber==='' && toVideoNumber===''){
-      fromVidNumber= 0;
-      toVideoNumber=videoIds.length;
-      console.log("Processing all videos in the playlist");
-    }
+
     // Slicing the array from 'fromVidNumber - 1' to 'toVideoNumber' (0-based index)
-   else {videoIds = videoIds.slice(fromVidNumber - 1, toVideoNumber);
+    videoIds = videoIds.slice(fromVidNumber - 1, toVideoNumber);
     console.log(`Processing videos from ${fromVidNumber} to ${toVideoNumber}`);
-  } }
+  } else {
+    console.log("Processing all videos in the playlist");
+  }
 
       // Fetch video details (thumbnails) for each video in the playlist
       async function individualvidsHelper(videoIds) {
