@@ -12,9 +12,16 @@ const Navbar = () => {
             PlaylistCalculator
           </li>
         </a>
+        <a href="/">
         <li className='cursor-pointer hover:font-bold transition-all hover:text-yellow-400'>
           Home
         </li>
+        </a>
+        <a href="/videodef">
+        <li className='cursor-pointer hover:font-bold transition-all hover:text-yellow-400'>
+          Video Definitions
+        </li>
+        </a>
         <li className='cursor-pointer hover:font-bold transition-all hover:text-yellow-400'>
           AboutUs
         </li>

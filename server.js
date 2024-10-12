@@ -305,10 +305,11 @@ try {
     function getPercentageScore(score)
     {
       const maxPossibleScore =10;
-      const percentageScore = Math.min(
+      const percentageScore = Math.floor(Math.min(
         Math.max(((score + maxPossibleScore) / (2 * maxPossibleScore)) * 100, 0),
         100
-      ); //  const percentageScore = Math.min((Math.max(((score+maxPossibleScore)/(2*maxPossibleScore)))*100,0),100);
+      )); //  const percentageScore = Math.min((Math.max(((score+maxPossibleScore)/(2*maxPossibleScore)))*100,0),100);
+      
       watchWiseScore.push(percentageScore);
     }
     getPercentageScore(score);
