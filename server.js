@@ -138,6 +138,7 @@ import axios from 'axios'
 import dotenv from 'dotenv'
 import bodyParser from 'body-parser'
 import cors from "cors"
+import { google } from 'googleapis'
 import Sentiment from 'sentiment'
 const sentiment = new Sentiment();
 import { GoogleGenerativeAI } from '@google/generative-ai'
@@ -159,6 +160,34 @@ app.use(express.json());
 const result = sentiment.analyze('I love this!');
 console.log(result);
 // Home route (for testing)
+
+// Set up OAuth 2.0 client
+const oauth2Client = new google.auth.OAuth2(
+  process.env.CLIENT_ID,      // Your OAuth 2.0 Client ID
+  process.env.CLIENT_SECRET,  // Your OAuth 2.0 Client Secret
+  'http://localhost:3000/callback' // Redirect URI
+);
+
+// Scopes for accessing YouTube API
+const scopes = ['https://www.googleapis.com/auth/youtube.force-ssl'];
+
+app.get('/auth', (req, res) => {
+  const authUrl = oauth2Client.generateAuthUrl({
+    access_type: 'offline',
+    scope: scopes
+  });
+  res.redirect(authUrl);
+});
+
+// OAuth 2.0 callback route
+app.get('/callback', async (req, res) => {
+  const { code } = req.query;
+  const { tokens } = await oauth2Client.getToken(code);
+  oauth2Client.setCredentials(tokens);
+  res.send('Authentication successful! You can now access the captions.');
+});
+
+
 app.get('/', (req, res) => {
   res.send('Welcome to the YouTube Analyzer!')
 })
@@ -536,6 +565,61 @@ app.post('/c', async (req, res) => {
     res.status(500).json({ error: "An internal error occurred while processing the video." });
   }
 });
+
+
+app.get('/videodef', async (req, res) => {
+  const videoId = "9t3vMi95z2w";
+
+  // Check if the user has authenticated and we have an access token
+  if (!req.session.tokens || !req.session.tokens.access_token) {
+    return res.redirect('/auth'); // Redirect to OAuth if no access token
+  }
+
+  // Set OAuth2 credentials with the stored tokens
+  oauth2Client.setCredentials(req.session.tokens);
+
+  const captionUrl = `https://www.googleapis.com/youtube/v3/captions?part=snippet&videoId=${videoId}`;
+
+  try {
+    // Step 1: Fetch captions with OAuth token
+    const captionResponse = await axios.get(captionUrl, {
+      headers: { Authorization: `Bearer ${req.session.tokens.access_token}` }
+    });
+    
+    const captions = captionResponse.data.items;
+
+    if (captions.length > 0) {
+      const captionId = captions[0].id; // Choose the first available caption
+      console.log('Caption found:', captionId);
+      
+      // Step 2: Download the caption content
+      const transcript = await getTranscript(captionId);
+      res.json({ transcript }); // Send the transcript back to the client (Postman)
+    } else {
+      console.log('No captions found for this video.');
+      res.status(404).json({ error: "No captions found for this video." });
+    }
+  } catch (error) {
+    console.error('Error retrieving captions:', error.response ? error.response.data : error.message);
+    res.status(500).json({ error: "Failed to retrieve captions." });
+  }
+
+  // Step 2: Download transcript (caption content)
+  async function getTranscript(captionId) {
+    const transcriptUrl = `https://www.googleapis.com/youtube/v3/captions/${captionId}?tfmt=srv1`;
+    try {
+      const transcriptResponse = await axios.get(transcriptUrl, {
+        headers: { Authorization: `Bearer ${req.session.tokens.access_token}` }
+      });
+      console.log('Transcript:', transcriptResponse.data);
+      return transcriptResponse.data; // Return the transcript data
+    } catch (error) {
+      console.error('Error retrieving transcript:', error.response ? error.response.data : error.message);
+      throw error;
+    }
+  }
+});
+
 
 const PORT = process.env.PORT || 3000
 app.listen(PORT, () => {
