@@ -143,6 +143,20 @@ import Sentiment from 'sentiment'
 const sentiment = new Sentiment();
 import { GoogleGenerativeAI } from '@google/generative-ai'
 const app = express()
+import session from 'express-session';
+import { AssemblyAI } from 'assemblyai'
+// const client = new AssemblyAI({
+//   apiKey: "cb02eee54d7a4e099242c80f5957597e"
+// })
+// Middleware to parse JSON
+app.use(express.json());
+// Add session middleware
+app.use(session({
+  secret: '1357', // Use a strong secret
+  resave: false,
+  saveUninitialized: true,
+  cookie: { secure: false } // Set to true if using HTTPS
+}));
 app.use(cors()) 
 // Load environment variables from .env file
 dotenv.config()
@@ -154,19 +168,58 @@ app.set('view engine', 'ejs')
 app.use(bodyParser.urlencoded({ extended: true }))
 //Global var
 var gl1
+var transcriptT=''
 
-// Middleware to parse JSON
-app.use(express.json());
-const result = sentiment.analyze('I love this!');
-console.log(result);
-// Home route (for testing)
+//Summary of video Premium API testing
 
-// Set up OAuth 2.0 client
-const oauth2Client = new google.auth.OAuth2(
-  process.env.CLIENT_ID,      // Your OAuth 2.0 Client ID
-  process.env.CLIENT_SECRET,  // Your OAuth 2.0 Client Secret
-  'http://localhost:3000/callback' // Redirect URI
-);
+app.post('/videodef', async (req, res) => {
+  console.log("Entered videoDef");
+
+  const client = new AssemblyAI({
+   // apiKey: "cb02eee54d7a4e099242c80f5957597e"
+   apiKey : process.env.API_Key2
+  });
+
+  const {FILE_URL} = req.body;; // Use req.body if the URL is sent in the POST request body
+console.log(FILE_URL)
+  if (!FILE_URL) {
+    return res.status(400).json({ error: "File URL is required" });
+  }
+
+  // Request parameters
+  const data = {
+    audio: FILE_URL,
+    speech_model: "best",
+    summarization: true,
+    sentiment_analysis: true,
+    language_detection: true,
+  };
+
+  try {
+    const transcript = await client.transcripts.transcribe(data); // Wait for the transcript result
+    console.log(transcript.text);
+    transcriptT =transcript.text
+    return res.json({ transcriptT});
+  } catch (error) {
+    console.error("Error transcribing the audio: ", error);
+    return res.status(500).json({ error: "Transcription failed" });
+  }
+});
+
+  
+  // const result = sentiment.analyze('I love this!');
+  // console.log(result);
+  // Home route (for testing)
+  
+  // Set up OAuth 2.0 client
+  const oauth2Client = new google.auth.OAuth2(
+    process.env.CLIENT_ID,      // Your OAuth 2.0 Client ID
+    process.env.CLIENT_SECRET,  // Your OAuth 2.0 Client Secret
+    'http://localhost:3000/callback' // Redirect URI
+  );
+  
+
+
 
 // Scopes for accessing YouTube API
 const scopes = ['https://www.googleapis.com/auth/youtube.force-ssl'];
@@ -180,12 +233,26 @@ app.get('/auth', (req, res) => {
 });
 
 // OAuth 2.0 callback route
+// OAuth 2.0 callback route
 app.get('/callback', async (req, res) => {
   const { code } = req.query;
-  const { tokens } = await oauth2Client.getToken(code);
-  oauth2Client.setCredentials(tokens);
-  res.send('Authentication successful! You can now access the captions.');
+  
+  if (!code) {
+    return res.status(400).send('No code found');
+  }
+
+  try {
+    const { tokens } = await oauth2Client.getToken(code);
+    oauth2Client.setCredentials(tokens);
+    req.session.tokens = tokens; // Store the tokens in the session
+    res.redirect('/videodef'); // Redirect to /videodef after successful login
+  } catch (error) {
+    console.error('Error retrieving access token', error);
+    res.status(500).send('Error retrieving access token: ' + error.message);
+  }
 });
+
+
 
 
 app.get('/', (req, res) => {
@@ -241,7 +308,8 @@ function formatDuration (totalSeconds) {
 // Route: Calculate Album Duration
 app.post('/playlist', async (req, res) => {
   const { y } = req.body;
-  const {from,to} =req.body;
+  const {from,to,isCheck} =req.body;
+  console.log(isCheck)
   console.log(from )
   console.log(to)
   console.log(y);
@@ -249,7 +317,7 @@ app.post('/playlist', async (req, res) => {
     const parsedUrl = new URL(y);
     //const isVideo = parsedUrl.searchParams.has('v');
     const videoId = parsedUrl.searchParams.get("list"); // Extracts the playlist ID
-    console.log(videoId)
+ //  console.log(videoId)
     // if (isVideo) {
     //   return res.status(400).json({ error: "This is a video. Please provide a playlist link." });
     // }
@@ -263,8 +331,8 @@ app.post('/playlist', async (req, res) => {
     const url = `https://www.googleapis.com/youtube/v3/playlistItems?part=contentDetails&maxResults=50&playlistId=${playlistId}&key=${API_KEY}`;
     // console.log(url);
     const fromVidNumber = from;// req.body.fromVidNumber; // Get from user input
-    console.log(from);
-    console.log(to);
+   // console.log(from);
+//    console.log(to);
 const toVideoNumber = to;//req.body.toVideoNumber; // Get from user input
 
 let imgUrls = [];
@@ -290,11 +358,12 @@ try {
   } else {
     console.log("Processing all videos in the playlist");
   }
-
+  if(isCheck){
       // Fetch video details (thumbnails) for each video in the playlist
       async function individualvidsHelper(videoIds) {
         let i = 1;
         for (const Id of videoIds) {
+         
           const linkforOne = `https://www.googleapis.com/youtube/v3/videos?key=${API_KEY}&part=snippet&id=${Id}`;
           const newLinkResponse = await axios.get(linkforOne);
 
@@ -304,11 +373,12 @@ try {
           imgUrls.push(imgUrl)
           console.log(`Number :${i++}`, imgUrl);
           //For eact videos we are adding the prompt!!!!!!!
-
+          
         
   const urlPrompt = `https://www.googleapis.com/youtube/v3/commentThreads?part=snippet&videoId=${Id}&key=${API_KEY}`
        
   try {
+    
     const response = await axios.get(urlPrompt)
 
     // Remove HTML tags from comments
@@ -353,7 +423,7 @@ try {
         try{
 
           const newLink = `https://www.googleapis.com/youtube/v3/videos?key=${API_KEY}&part=snippet&id=${Id}`
-          console.log(newLink)
+         //console.log(newLink)
           const newLinkResponse = await axios.get(newLink)
           //title part
        const videoTitle1 = newLinkResponse.data.items[0].snippet.title
@@ -362,8 +432,16 @@ try {
         }catch(err){console.error(err +" i am the title error ")
         }
       }}
+      await individualvidsHelper(videoIds);
+    } else{
+      videoTitle='';
+      eachComments='';
+      imgUrls='';
+      watchWiseScore=0
 
-     await individualvidsHelper(videoIds);
+
+    }
+  
 
       // Calculate total duration
       let totalDurationInSeconds = 0;
@@ -378,9 +456,7 @@ try {
       const speedDurations = calculateSpeedDurations(totalDurationInSeconds);
       const averageDuration = formatDuration(totalDurationInSeconds / videoIds.length);
    //   console.log(eachComments)
-   watchWiseScore.map((percentage)=>{
-    console.log(percentage);
-   })
+  
       res.json ({
         message : "Message got successfully",
         totalDuration,
@@ -389,7 +465,8 @@ try {
         imgUrls,
         eachComments,
         videoTitle,
-        watchWiseScore
+        watchWiseScore,
+        isCheck
       });
 
     } catch (error) {
@@ -483,6 +560,8 @@ app.get('/comments', async (req, res) => {
 app.post('/c', async (req, res) => {
   const { x } = req.body; // Ensure you're receiving the body as an object with { x }
   const clientUrl = x;
+  const {isCheck}= req.body;
+  console.log(isCheck +"Hi ischecked--");
   
   try {
     const parsedUrl = new URL(clientUrl);
@@ -517,7 +596,7 @@ app.post('/c', async (req, res) => {
     const result = await model.generateContent(prompt);
     const finalResult = result.response.text(); // Corrected response extraction
     const sentimentResult = sentiment.analyze(finalResult)
-    console.log(sentimentResult);
+   // console.log(sentimentResult);
     const score = sentimentResult.score;
     let watchWiseScore;
     function getPercentageScore(score)
@@ -568,33 +647,37 @@ app.post('/c', async (req, res) => {
 
 
 app.get('/videodef', async (req, res) => {
-  const videoId = "9t3vMi95z2w";
+  const videoId = "PkZNo7MFNFg"; // Replace with your actual video ID
 
-  // Check if the user has authenticated and we have an access token
   if (!req.session.tokens || !req.session.tokens.access_token) {
     return res.redirect('/auth'); // Redirect to OAuth if no access token
   }
 
-  // Set OAuth2 credentials with the stored tokens
   oauth2Client.setCredentials(req.session.tokens);
 
   const captionUrl = `https://www.googleapis.com/youtube/v3/captions?part=snippet&videoId=${videoId}`;
 
   try {
-    // Step 1: Fetch captions with OAuth token
     const captionResponse = await axios.get(captionUrl, {
       headers: { Authorization: `Bearer ${req.session.tokens.access_token}` }
     });
-    
+
     const captions = captionResponse.data.items;
 
     if (captions.length > 0) {
       const captionId = captions[0].id; // Choose the first available caption
       console.log('Caption found:', captionId);
-      
-      // Step 2: Download the caption content
-      const transcript = await getTranscript(captionId);
-      res.json({ transcript }); // Send the transcript back to the client (Postman)
+
+      // Check caption status
+      const captionStatus = captions[0].snippet.status;
+      if (captionStatus !== 'failed') {
+        const transcript = await getTranscript(captionId);
+        console.log(transcript)
+        res.json({ transcript });
+      } else {
+        console.log('Caption status is failed.');
+        res.status(404).json({ error: "Caption track is unavailable." });
+      }
     } else {
       console.log('No captions found for this video.');
       res.status(404).json({ error: "No captions found for this video." });
@@ -604,15 +687,14 @@ app.get('/videodef', async (req, res) => {
     res.status(500).json({ error: "Failed to retrieve captions." });
   }
 
-  // Step 2: Download transcript (caption content)
   async function getTranscript(captionId) {
-    const transcriptUrl = `https://www.googleapis.com/youtube/v3/captions/${captionId}?tfmt=srv1`;
+    const transcriptUrl = `https://www.googleapis.com/youtube/v3/captions/${captionId}?tfmt=sbv&tlang=en`; // Use valid tfmt and tlang
     try {
       const transcriptResponse = await axios.get(transcriptUrl, {
         headers: { Authorization: `Bearer ${req.session.tokens.access_token}` }
       });
       console.log('Transcript:', transcriptResponse.data);
-      return transcriptResponse.data; // Return the transcript data
+      return transcriptResponse.data;
     } catch (error) {
       console.error('Error retrieving transcript:', error.response ? error.response.data : error.message);
       throw error;
@@ -621,7 +703,8 @@ app.get('/videodef', async (req, res) => {
 });
 
 
-const PORT = process.env.PORT || 3000
+
+const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`)
-})
+  console.log(`Server is running on port ${PORT}`);
+});

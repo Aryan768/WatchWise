@@ -1,8 +1,10 @@
 import React from "react";
 
-// Pagination is what this is
+
 const Cards = ({ responseP }) => {
   return (
+    <>
+    { responseP.isCheck && (
     <div className="min-h-screen bg-yellow-400 flex justify-center items-center py-20">
       <div className="container mx-auto p-12 bg-gray-100 rounded-xl">
         <h1 className="text-4xl uppercase font-bold from-current mb-8">
@@ -62,7 +64,8 @@ const Cards = ({ responseP }) => {
         </div>
       </div>
     </div>
-  );
+  )}
+  </>
+);
 };
-
 export default Cards;

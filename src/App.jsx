@@ -8,6 +8,9 @@ import ResponseComponentPlaylist from './components/ResponseComponentPlaylist';
 
 import { ClipLoader } from 'react-spinners'; // Spinner
 import Cards from './components/Cards';
+import VideoDefResponseComponent from './components/VideoDefResponse';
+import VideoDefFormComponent from './components/videoDefFormComponent';
+import LandingPage from './components/LandingPage';
 
 function App() {
   const [input, setInput] = useState('');
@@ -49,7 +52,7 @@ function App() {
   };
   //PlayList
 
-  const handleSubmitP = async (e ,fromVidNumber,toVidNumber) => {
+  const handleSubmitP = async (e ,fromVidNumber,toVidNumber,isChecked) => {
     e.preventDefault();
     setLoadingP(true);
 
@@ -59,7 +62,7 @@ function App() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ y: pInput,from:fromVidNumber,to:toVidNumber}),
+        body: JSON.stringify({ y: pInput,from:fromVidNumber,to:toVidNumber,isCheck: isChecked}),
       });
 
       if (!resultP.ok) {
@@ -77,9 +80,45 @@ function App() {
     }
   };
 
+  const handleSubmit2 = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+      console.log(input)
+    try {
+      const result = await fetch("http://localhost:3000/videodef", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ FILE_URL: input }),
+      });
+
+      if (!result.ok) {
+        throw new Error('Failed to fetch data. Please try again.');
+      }
+
+      const data = await result.json();
+      console.log(result)
+      setResponse(data);
+      setError(null);
+    } catch (err) {
+      setError(err.message);
+      setResponse(null);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const router = createBrowserRouter([
-    {
+     {
       path: "/",
+      element : (
+        <LandingPage/>
+      )
+    },
+      
+      {
+      path: "/youtubevideo",
       element: (
         <>
           <Navbar />
@@ -130,6 +169,31 @@ function App() {
       )}
       
     </>
+    },{
+      path: "/videodef",
+      element: (
+        <>
+          <Navbar />
+          <VideoDefFormComponent input={input} handleSubmit2={handleSubmit2} setInput={setInput} />
+
+          {loading && (
+            <div className="flex justify-center items-center h-screen">
+              <ClipLoader color="#4A90E2" loading={loading} size={150} />
+            </div>
+          )}
+
+          {response && !loading && (
+            <VideoDefResponseComponent response={response} input={input} />
+          )}
+
+          {error && (
+            <div className="text-red-500 mt-4">
+              <p>{error}</p>
+            </div>
+          )}
+        </>
+      ),
+
     }
  ])
 
