@@ -1,138 +1,4 @@
-// const express = require('express')
-// const app = express()
-// const axios = require('axios')
-// const dotenv = require('dotenv')
-// const bodyParser = require('body-parser')
-// const { GoogleGenerativeAI } = require('@google/generative-ai')
 
-// // Load environment variables from .env file
-// dotenv.config()
-
-// // Set the view engine to EJS
-// app.set('view engine', 'ejs')
-
-// // Parse incoming request data
-// app.use(bodyParser.urlencoded({ extended: true }))
-
-// // Home route (for testing)
-// app.get('/', (req, res) => {
-//   res.send('Welcome to the YouTube Analyzer!')
-// })
-
-// app.get('/album-duration', async (req, res) => {
-//   const playlistId = req.query.playlistId // The playlist ID will be passed via URL
-//   const API_KEY = process.env.YOUTUBE_API_KEY
-//   const url = `https://www.googleapis.com/youtube/v3/playlistItems?part=contentDetails&maxResults=50&playlistId=${playlistId}&key=${API_KEY}`
-
-//   try {
-//     const response = await axios.get(url)
-//     // console.log("response:")
-//     // console.log(response);
-//     const videoIds = response.data.items.map(
-//       item => item.contentDetails.videoId
-//     )
-//     // console.log("videoIds:")
-//     // console.log(videoIds)
-
-//     //  fetch the duration for each video
-//     const videoDetailsUrl = `https://www.googleapis.com/youtube/v3/videos?part=contentDetails&id=${videoIds.join(
-//       ','
-//     )}&key=${API_KEY}`
-
-//     const videoDetailsResponse = await axios.get(videoDetailsUrl)
-
-//     let totalDurationInSeconds = 0
-
-//     videoDetailsResponse.data.items.forEach(video => {
-//       const duration = video.contentDetails.duration
-//       const seconds = parseISO8601Duration(duration)
-//       totalDurationInSeconds += seconds
-//     })
-
-//     const hours = Math.floor(totalDurationInSeconds / 3600)
-//     const minutes = Math.floor((totalDurationInSeconds % 3600) / 60)
-//     const seconds = totalDurationInSeconds % 60
-
-//     res.send(`Total Album Duration: ${hours}h ${minutes}m ${seconds}s`)
-//   } catch (error) {
-//     console.error(error)
-//     res.status(500).send('Error fetching album duration')
-//   }
-// })
-
-// // Helper function to parse ISO 8601 duration format (like PT1H2M30S)
-// function parseISO8601Duration (duration) {
-//   const match = duration.match(/PT(\d+H)?(\d+M)?(\d+S)?/)
-//   const hours = parseInt(match[1]) || 0
-//   const minutes = parseInt(match[2]) || 0
-//   const seconds = parseInt(match[3]) || 0
-//   return hours * 3600 + minutes * 60 + seconds
-// }
-// let comments = ''
-// app.get('/comments', async (req, res) => {
-//   const videoId = req.query.videoId // Pass video ID via URL
-//   const API_KEY = process.env.YOUTUBE_API_KEY
-//   const url = `https://www.googleapis.com/youtube/v3/commentThreads?part=snippet&videoId=${videoId}&key=${API_KEY}`
-
-//   try {
-//     const response = await axios.get(url)
-
-//     // Remove HTML tags from each comment using a regex
-//     comments = response.data.items.map(item => {
-//       const rawComment = item.snippet.topLevelComment.snippet.textDisplay
-//       return rawComment.replace(/<\/?[^>]+(>|$)/g, '') // This strips HTML tags
-//     })
-
-//     // res.render('comments', { comments });
-//     const genAI = new GoogleGenerativeAI(process.env.API_KEY)
-//     const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' })
-//     console.log(comments)
-//     const prompt = `Summarize the following YouTube comments:'${comments}'
-//       Also, provide a brief overview of the main topics discussed in the comments.`
-
-//     const result = await model.generateContent(prompt)
-//     res.send(result.response.text())
-//   } catch (error) {
-//     console.error(error)
-//     res.status(500).send('Error fetching comments')
-//   }
-
-//   //  res.send(result.response.text())
-// })
-// app.get('/likes', async (req, res) => {
-//   const videoId = req.query.videoId
-//   const API_KEY = process.env.YOUTUBE_API_KEY
-//   const videoDetailsUrl = `https://www.googleapis.com/youtube/v3/videos?part=statistics&id=${videoId}&key=${API_KEY}`
-//   const videoDetailsResponse = await axios.get(videoDetailsUrl)
-//   const videoStats = videoDetailsResponse.data.items[0].statistics
-//   const { viewCount, likeCount, dislikeCount, commentCount } = videoStats
-
-//   // Render the data
-//   res.render('video-analysis1', {
-//     comments,
-//     viewCount,
-//     likeCount,
-//     dislikeCount: dislikeCount || 'Unavailable',
-//     commentCount
-//   })
-// })
-
-// app.get('/atspeed', async (req, res) => {
-//   const videoId = req.query.videoId // The playlist ID will be passed via URL
-//   const API_KEY = process.env.YOUTUBE_API_KEY
-//   const url = `https://www.googleapis.com/youtube/v3/videos?part=contentDetails&id=${videoId}&key=${API_KEY}`
-//   const vidDetail = await axios.get(url)
-
-//   const totalTime = vidDetail.data.items[0].contentDetails.duration
-//   console.log(totalTime)
-//   res.send(totalTime)
-// })
-// const PORT = process.env.PORT || 3000
-// app.listen(PORT, () => {
-//   console.log(`Server is running on port ${PORT}`)
-
-// })
-//VideoDescription as speed part front end part
 import express from 'express'
 import axios from 'axios'
 import dotenv from 'dotenv'
@@ -151,12 +17,7 @@ import { AssemblyAI } from 'assemblyai'
 // Middleware to parse JSON
 app.use(express.json());
 // Add session middleware
-app.use(session({
-  secret: '1357', // Use a strong secret
-  resave: false,
-  saveUninitialized: true,
-  cookie: { secure: false } // Set to true if using HTTPS
-}));
+
 app.use(cors()) 
 // Load environment variables from .env file
 dotenv.config()
@@ -206,51 +67,7 @@ console.log(FILE_URL)
   }
 });
 
-  
-  // const result = sentiment.analyze('I love this!');
-  // console.log(result);
-  // Home route (for testing)
-  
-  // Set up OAuth 2.0 client
-  const oauth2Client = new google.auth.OAuth2(
-    process.env.CLIENT_ID,      // Your OAuth 2.0 Client ID
-    process.env.CLIENT_SECRET,  // Your OAuth 2.0 Client Secret
-    'http://localhost:3000/callback' // Redirect URI
-  );
-  
 
-
-
-// Scopes for accessing YouTube API
-const scopes = ['https://www.googleapis.com/auth/youtube.force-ssl'];
-
-app.get('/auth', (req, res) => {
-  const authUrl = oauth2Client.generateAuthUrl({
-    access_type: 'offline',
-    scope: scopes
-  });
-  res.redirect(authUrl);
-});
-
-// OAuth 2.0 callback route
-// OAuth 2.0 callback route
-app.get('/callback', async (req, res) => {
-  const { code } = req.query;
-  
-  if (!code) {
-    return res.status(400).send('No code found');
-  }
-
-  try {
-    const { tokens } = await oauth2Client.getToken(code);
-    oauth2Client.setCredentials(tokens);
-    req.session.tokens = tokens; // Store the tokens in the session
-    res.redirect('/videodef'); // Redirect to /videodef after successful login
-  } catch (error) {
-    console.error('Error retrieving access token', error);
-    res.status(500).send('Error retrieving access token: ' + error.message);
-  }
-});
 
 
 
@@ -646,61 +463,61 @@ app.post('/c', async (req, res) => {
 });
 
 
-app.get('/videodef', async (req, res) => {
-  const videoId = "PkZNo7MFNFg"; // Replace with your actual video ID
+// app.get('/videodef', async (req, res) => {
+//   const videoId = "PkZNo7MFNFg"; // Replace with your actual video ID
 
-  if (!req.session.tokens || !req.session.tokens.access_token) {
-    return res.redirect('/auth'); // Redirect to OAuth if no access token
-  }
+//   if (!req.session.tokens || !req.session.tokens.access_token) {
+//     return res.redirect('/auth'); // Redirect to OAuth if no access token
+//   }
 
-  oauth2Client.setCredentials(req.session.tokens);
+//   oauth2Client.setCredentials(req.session.tokens);
 
-  const captionUrl = `https://www.googleapis.com/youtube/v3/captions?part=snippet&videoId=${videoId}`;
+//   const captionUrl = `https://www.googleapis.com/youtube/v3/captions?part=snippet&videoId=${videoId}`;
 
-  try {
-    const captionResponse = await axios.get(captionUrl, {
-      headers: { Authorization: `Bearer ${req.session.tokens.access_token}` }
-    });
+//   try {
+//     const captionResponse = await axios.get(captionUrl, {
+//       headers: { Authorization: `Bearer ${req.session.tokens.access_token}` }
+//     });
 
-    const captions = captionResponse.data.items;
+//     const captions = captionResponse.data.items;
 
-    if (captions.length > 0) {
-      const captionId = captions[0].id; // Choose the first available caption
-      console.log('Caption found:', captionId);
+//     if (captions.length > 0) {
+//       const captionId = captions[0].id; // Choose the first available caption
+//       console.log('Caption found:', captionId);
 
-      // Check caption status
-      const captionStatus = captions[0].snippet.status;
-      if (captionStatus !== 'failed') {
-        const transcript = await getTranscript(captionId);
-        console.log(transcript)
-        res.json({ transcript });
-      } else {
-        console.log('Caption status is failed.');
-        res.status(404).json({ error: "Caption track is unavailable." });
-      }
-    } else {
-      console.log('No captions found for this video.');
-      res.status(404).json({ error: "No captions found for this video." });
-    }
-  } catch (error) {
-    console.error('Error retrieving captions:', error.response ? error.response.data : error.message);
-    res.status(500).json({ error: "Failed to retrieve captions." });
-  }
+//       // Check caption status
+//       const captionStatus = captions[0].snippet.status;
+//       if (captionStatus !== 'failed') {
+//         const transcript = await getTranscript(captionId);
+//         console.log(transcript)
+//         res.json({ transcript });
+//       } else {
+//         console.log('Caption status is failed.');
+//         res.status(404).json({ error: "Caption track is unavailable." });
+//       }
+//     } else {
+//       console.log('No captions found for this video.');
+//       res.status(404).json({ error: "No captions found for this video." });
+//     }
+//   } catch (error) {
+//     console.error('Error retrieving captions:', error.response ? error.response.data : error.message);
+//     res.status(500).json({ error: "Failed to retrieve captions." });
+//   }
 
-  async function getTranscript(captionId) {
-    const transcriptUrl = `https://www.googleapis.com/youtube/v3/captions/${captionId}?tfmt=sbv&tlang=en`; // Use valid tfmt and tlang
-    try {
-      const transcriptResponse = await axios.get(transcriptUrl, {
-        headers: { Authorization: `Bearer ${req.session.tokens.access_token}` }
-      });
-      console.log('Transcript:', transcriptResponse.data);
-      return transcriptResponse.data;
-    } catch (error) {
-      console.error('Error retrieving transcript:', error.response ? error.response.data : error.message);
-      throw error;
-    }
-  }
-});
+//   async function getTranscript(captionId) {
+//     const transcriptUrl = `https://www.googleapis.com/youtube/v3/captions/${captionId}?tfmt=sbv&tlang=en`; // Use valid tfmt and tlang
+//     try {
+//       const transcriptResponse = await axios.get(transcriptUrl, {
+//         headers: { Authorization: `Bearer ${req.session.tokens.access_token}` }
+//       });
+//       console.log('Transcript:', transcriptResponse.data);
+//       return transcriptResponse.data;
+//     } catch (error) {
+//       console.error('Error retrieving transcript:', error.response ? error.response.data : error.message);
+//       throw error;
+//     }
+//   }
+// });
 
 
 
