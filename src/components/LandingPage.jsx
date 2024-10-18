@@ -28,10 +28,14 @@ const LandingPage = () => {
             </p>
           </div>
           <div className="lg:w-1/2">
-            <video controls className="rounded-lg shadow-lg w-full">
-              <source src="video.mp4" type="video/mp4" />
-              Your browser does not support the video tag.
-            </video>
+          <iframe
+  src="https://www.dailymotion.com/embed/video/k5NBUNKiEj2wufBGLmU"
+  width="100%"
+  height="480"
+  allow="autoplay; fullscreen"
+  allowFullScreen
+  className="rounded-lg shadow-lg"
+/>
           </div>
         </div>
       </section>
@@ -45,21 +49,21 @@ const LandingPage = () => {
             <div className="flex overflow-hidden">
               <div className="w-full transition-transform transform">
                 <img
-                  src="image1.jpg"
+                  src="public/transcription.png"
                   alt="Feature 1"
                   className="rounded-lg shadow-lg mx-auto w-full h-64 object-cover"
                 />
               </div>
               <div className="w-full transition-transform transform">
                 <img
-                  src="image2.jpg"
+                  src="public/comments.png"
                   alt="Feature 2"
                   className="rounded-lg shadow-lg mx-auto w-full h-64 object-cover"
                 />
               </div>
               <div className="w-full transition-transform transform">
                 <img
-                  src="image3.jpg"
+                  src="public/duration.png"
                   alt="Feature 3"
                   className="rounded-lg shadow-lg mx-auto w-full h-64 object-cover"
                 />

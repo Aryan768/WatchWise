@@ -19,12 +19,14 @@ const Navbar = () => {
         </a>
         <a href="/videodef">
         <li className='cursor-pointer hover:font-bold transition-all hover:text-yellow-400'>
-          Video Definitions
+          Video Transcription
         </li>
         </a>
+        <a href="/youtubevideo">
         <li className='cursor-pointer hover:font-bold transition-all hover:text-yellow-400'>
-          AboutUs
+          Youtube Video
         </li>
+        </a>
       </ul>
     </nav>
   );

@@ -8,7 +8,7 @@ const ResponseComponentPlaylist = ({ responseP, pInput }) => {
         The link is authenticated! You can now perform further actions.
       </p>
       <div className="mt-4">
-        <p>Response from backend:</p>
+        <p>Durations:</p>
         {/* <p className="text-green-600">Likes: {responseP.likeCount}</p> */}
         {/* <p>
           <a href={pInput}>

@@ -82,8 +82,8 @@ const FormComponentPlaylist = ({ pInput, handleSubmitP, setpInput }) => {
           </div>
           {/* Subsection 3 */}
           <div className="bg-gradient-to-r from-pink-100 to-purple-100 p-4 rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300">
-            <h3 className="text-xl font-semibold text-purple-600 mb-2">Likes, Dislikes & Engagement</h3>
-            <p className="text-gray-600">View stats like the number of likes, dislikes, and overall engagement metrics of the video to get a clear picture of its reception.</p>
+            <h3 className="text-xl font-semibold text-purple-600 mb-2">Playlist Length</h3>
+            <p className="text-gray-600">Get total duration of playlist and durations at different speed.</p>
           </div>
         </div>
       </div>

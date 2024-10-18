@@ -3,7 +3,6 @@ import React from 'react';
 const ResponseComponent = ({ response, input }) => {
   return (
     <>
-    
       <div className="max-w-sm rounded overflow-hidden shadow-lg bg-cyan-100 p-6 mt-4">
         <h2 className="text-xl font-bold mb-2">Valid Link</h2>
         <p className="text-gray-700 text-base">
