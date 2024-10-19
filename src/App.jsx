@@ -28,7 +28,7 @@ function App() {
     setLoading(true);
 
     try {
-      const result = await fetch("http://localhost:3000/c", {
+      const result = await fetch("http://localhost:4000/c", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -57,7 +57,7 @@ function App() {
     setLoadingP(true);
 
     try {
-      const resultP = await fetch("http://localhost:3000/playlist", {
+      const resultP = await fetch("http://localhost:4000/playlist", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -85,7 +85,7 @@ function App() {
     setLoading(true);
       console.log(input)
     try {
-      const result = await fetch("http://localhost:3000/videodef", {
+      const result = await fetch("http://localhost:4000/videodef", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
