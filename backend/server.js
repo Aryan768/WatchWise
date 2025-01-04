@@ -2,6 +2,8 @@
 import express from 'express'
 import axios from 'axios'
 import dotenv from 'dotenv'
+dotenv.config()
+
 import bodyParser from 'body-parser'
 import cors from "cors"
 import { google } from 'googleapis'
@@ -24,8 +26,8 @@ import path from 'path'
 const s3 = new S3Client({
   region: process.env.AWS_REGION,
   credentials: {
-    accessKeyId: 'AKIAWOAVSJX7HBWWGMG6',
-    secretAccessKey: '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',
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
   },
 });
 
@@ -51,7 +53,6 @@ app.use(express.json());
 
 app.use(cors()) 
 // Load environment variables from .env file
-dotenv.config()
 
 
 
