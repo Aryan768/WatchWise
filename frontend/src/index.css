@@ -1,0 +1,12 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  background: linear-gradient(180deg, #1EE4D9 0%, #159DFF 100%);
+  height: 100vh; /* Ensure the body takes the full viewport height */
+  background-repeat: no-repeat; /* Prevent gradient repetition */
+  background-attachment: fixed; /* Keep the gradient fixed as the page scrolls */
+  background-size: cover; /* Ensure the gradient covers the entire viewport */
+  margin: 0; /* Remove any margin that might cause issues */
+}
