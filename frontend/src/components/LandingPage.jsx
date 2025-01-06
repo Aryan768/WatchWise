@@ -1,6 +1,14 @@
-import React from "react";
+import React, { useState, useEffect } from 'react';
 import { Link } from "react-router-dom";
+
 const LandingPage = () => {
+  const slides = [
+    'Uploadpart.png', 
+    'transcription.png', 
+    'comments.png', 
+    'duration.png', 
+  ];
+
   return (
     <div className="bg-gray-100 text-gray-800">
       {/* Navbar */}
@@ -28,50 +36,36 @@ const LandingPage = () => {
             </p>
           </div>
           <div className="lg:w-1/2">
-          <iframe
-  src="https://www.dailymotion.com/embed/video/k5NBUNKiEj2wufBGLmU"
-  width="100%"
-  height="480"
-  allow="autoplay; fullscreen"
-  allowFullScreen
-  className="rounded-lg shadow-lg"
-/>
+            <iframe
+              src="https://www.dailymotion.com/embed/video/k5NBUNKiEj2wufBGLmU"
+              width="100%"
+              height="480"
+              allow="autoplay; fullscreen"
+              allowFullScreen
+              className="rounded-lg shadow-lg"
+            />
           </div>
         </div>
       </section>
 
-      {/* Image Slideshow Section */}
+      {/* Image Section with Hover Effect */}
       <section className="bg-white py-16">
         <div className="container mx-auto text-center">
           <h2 className="text-3xl font-bold mb-8">How WatchWise Works</h2>
-          <div className="relative w-full mx-auto lg:w-2/3">
-            {/* Slideshow */}
-            <div className="flex overflow-hidden">
-              <div className="w-full transition-transform transform">
-                <img
-                  src="public/transcription.png"
-                  alt="Feature 1"
-                  className="rounded-lg shadow-lg mx-auto w-full h-64 object-cover"
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-8">
+            {slides.map((slide, index) => (
+              <div key={index} className="relative group">
+                <img 
+                  src={`/public/${slide}`} // Adjust image path as needed
+                  alt={`Feature ${index + 1}`}
+                  className="rounded-lg shadow-lg w-full h-96 object-cover transform transition-transform duration-300 ease-in-out group-hover:scale-110" 
+                  style={{ width: '100%' }} // Ensure the image takes up full width
                 />
               </div>
-              <div className="w-full transition-transform transform">
-                <img
-                  src="public/comments.png"
-                  alt="Feature 2"
-                  className="rounded-lg shadow-lg mx-auto w-full h-64 object-cover"
-                />
-              </div>
-              <div className="w-full transition-transform transform">
-                <img
-                  src="public/duration.png"
-                  alt="Feature 3"
-                  className="rounded-lg shadow-lg mx-auto w-full h-64 object-cover"
-                />
-              </div>
-            </div>
+            ))}
           </div>
           <p className="text-lg mt-6">
-            Discover how WatchWise helps you analyze and enhance your YouTube experience with advanced features.
+            Discover how WatchWise helps you analyze and enhance your YouTube experience with advanced features including video transcription (Added AWS S3) with upload feature.
           </p>
         </div>
       </section>
@@ -83,23 +77,6 @@ const LandingPage = () => {
           <p>&copy; 2024 WatchWise. All Rights Reserved.</p>
         </div>
       </footer>
-
-      {/* Slideshow JavaScript */}
-      <script>
-        {`
-          let slideIndex = 0;
-          const slides = document.querySelectorAll('.flex .transform');
-          
-          function showSlides() {
-            slides.forEach((slide, index) => {
-              slide.style.transform = \`translateX(-\${slideIndex * 100}%)\`;
-            });
-            slideIndex = (slideIndex + 1) % slides.length;
-          }
-
-          setInterval(showSlides, 3000); // Change slide every 3 seconds
-        `}
-      </script>
     </div>
   );
 };

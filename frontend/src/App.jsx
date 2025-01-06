@@ -138,15 +138,19 @@ const [selectedFile, setSelectedFile] = useState(null);
     setMessage('Uploading...');
 
     try {
+      setResponse(null);
+
       // Send file to the backend for upload
+      setMessage('Uploaded to AWS S3 Transcribing..')
+      
       const uploadResponseFromBackend = await axios.post('http://localhost:40001/videodef', formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
         console.log(uploadResponseFromBackend)
-      const dataFromFile  = uploadResponseFromBackend.data;
+      var dataFromFile  = uploadResponseFromBackend.data;
      setResponse(dataFromFile)
 
-      setMessage('File uploaded successfully! Starting transcription...');
+      setMessage('Done transcription ');
 
       // Call the backend to start transcription
     //  const transcriptionResponse = await axios.post('/start-transcription', { fileUrl });

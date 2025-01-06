@@ -710,7 +710,8 @@ app.get("/api", (req, res) => {
 
 // All other requests should return the React frontend
 app.get("*", (req, res) => {
-  res.sendFile(path.join(__dirname, "dist", "index.html"));
+  res.sendFile(path.join(__dirname, '../frontend/build', 'index.html'));
+
 });
 
 
