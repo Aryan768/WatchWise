@@ -19,7 +19,7 @@ const LandingPage = () => {
             <li><Link to="/" className="hover:text-orange-400">Home</Link></li>
             <li><Link to="/videodef" className="hover:text-orange-400">Video Transcription</Link></li>
             <li><Link to="/playlist" className="hover:text-orange-400">YouTube Playlist</Link></li>
-            <li><Link href="/youtubevideo" className="hover:text-orange-400">YouTube Video</Link></li>
+            <li><Link to="/youtubevideo" className="hover:text-orange-400">YouTube Video</Link></li>
           </ul>
         </nav>
       </header>
