@@ -3,7 +3,8 @@ import express from 'express'
 import axios from 'axios'
 import dotenv from 'dotenv'
 dotenv.config()
-
+import { fileURLToPath } from 'url';
+import { type } from 'os'
 import bodyParser from 'body-parser'
 import cors from "cors"
 import { google } from 'googleapis'
@@ -14,13 +15,22 @@ import { GoogleGenerativeAI } from '@google/generative-ai'
 import multer from 'multer';
 import multerS3 from 'multer-s3';
 const app = express()
+import path from 'path'
+// Define __dirname manually in ES module
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+//app.use(express.static(path.join(__dirname, 'build')));
+
+// Serve static files from the React frontend
+app.use(express.static(path.join(__dirname, "../frontend/dist")));  // Adjust the path to "dist" for Vite
+
 import session from 'express-session';
 import { AssemblyAI } from 'assemblyai'
 
 
 import { S3Client } from '@aws-sdk/client-s3';  // v3 client
 import { Upload } from '@aws-sdk/lib-storage';   // v3 for upload
-import path from 'path'
+
 
 
 const s3 = new S3Client({
@@ -56,16 +66,8 @@ app.use(cors())
 
 
 
-import { fileURLToPath } from 'url';
-import { type } from 'os'
 
 
-// Define __dirname manually in ES module
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-// Serve static files from the React frontend
-app.use(express.static(path.join(__dirname, "dist")));  // Adjust the path to "dist" for Vite
 
 // Set the view engine to EJS
 app.set('view engine', 'ejs')
@@ -254,9 +256,9 @@ app.post('/awstry',async (req,res)=>{
 
 
 
-app.get('/', (req, res) => {
-  res.send('Welcome to the YouTube Analyzer!')
-})
+// app.get('/', (req, res) => {
+//   res.send('Welcome to the YouTube Analyzer!')
+// })
 
 // Helper function: Fetch video details by ID
 
@@ -703,14 +705,11 @@ app.post('/c', async (req, res) => {
 
 
 
-// Example API route
-app.get("/api", (req, res) => {
-  res.json({ message: "Hello from the backend!" });
-});
 
 // All other requests should return the React frontend
-app.get("*", (req, res) => {
-  res.sendFile(path.join(__dirname, '../frontend/build', 'index.html'));
+app.get('/', (req, res) => {
+  //res.sendFile(path.join(__dirname, '.../frontend', 'index.html'));
+  res.sendFile(path.join(__dirname, '../frontend/dist', 'index.html')); 
 
 });
 
