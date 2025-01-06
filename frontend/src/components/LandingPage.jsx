@@ -56,7 +56,7 @@ const LandingPage = () => {
             {slides.map((slide, index) => (
               <div key={index} className="relative group">
                 <img 
-                  src={`/public/${slide}`} // Adjust image path as needed
+                  src={`${slide}`} // Adjust image path as needed
                   alt={`Feature ${index + 1}`}
                   className="rounded-lg shadow-lg w-full h-96 object-cover transform transition-transform duration-300 ease-in-out group-hover:scale-110" 
                   style={{ width: '100%' }} // Ensure the image takes up full width
