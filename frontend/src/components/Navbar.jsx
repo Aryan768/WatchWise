@@ -24,7 +24,7 @@ const Navbar = () => {
         </Link>
         <Link to="/youtubevideo">
         <li className='cursor-pointer hover:font-bold transition-all hover:text-yellow-400'>
-          Youtube Video
+          Youtube Video Analysis
         </li>
         </Link>
       </ul>
